@@ -1,24 +1,16 @@
 # Arckiv — AI-Powered Document Management
 
-React document manager with Firebase Authentication, Express, MongoDB GridFS,
-Gemini extraction/chat, and a FastAPI/scikit-learn V2 classifier.
+**Live app:** https://arckiv-whatsapp-8fbf7.web.app  
+**API health:** https://arckiv-api.onrender.com/health
 
-## Deployment
+React, Firebase Authentication, Express, MongoDB GridFS, Gemini extraction/chat,
+and a private FastAPI/scikit-learn V2 classifier.
 
-This repository is the deployment checkout. Firebase Hosting serves the frontend;
-a single free Render Docker service runs Express and private FastAPI inference.
-Original documents are protected by authenticated endpoints and stored in GridFS.
+One free Render Docker service runs Express and ML inference; Firebase Hosting serves the frontend. The V2 model is preserved at confidence threshold **0.45**, with a deployment checksum and no automatic retraining. Files are served through authenticated or expiring share-token endpoints.
 
-- `Dockerfile` and `render.yaml`: backend + ML runtime
-- `deploy/.env.example`: production environment checklist (no real secrets)
-- `deploy/model-manifest.json`: preserved V2 checksum and model ID
-- `DEPLOYMENT.md`: setup and redeploy commands
-- `TEST_REPORT.md`: test scope and outstanding cloud verification
+- [Deployment and redeploy commands](DEPLOYMENT.md)
+- [Actual test results and limitations](TEST_REPORT.md)
+- [Production environment checklist](deploy/.env.example)
+- [V2 model manifest](deploy/model-manifest.json)
 
-The model is preserved at confidence threshold **0.45**. Deployment never retrains it.
-No credentials, uploaded user documents, training datasets or local dependencies
-are included. Runtime dependency versions are pinned in lockfiles.
-
-The reserved Firebase site is `arckiv-whatsapp-8fbf7.web.app`.
-A reserved site does not mean a working release has been published: check the
-current deployment report for backend/database readiness.
+This source-only deployment checkout excludes credentials, user documents, training datasets, local dependencies and test fixtures. Free services can sleep and AI quotas apply; keyword search is available without an Atlas vector index.

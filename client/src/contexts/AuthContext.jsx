@@ -1,6 +1,6 @@
 import { apiUrl } from '../lib/api';
 import { createContext, useContext, useState, useEffect } from 'react';
-import { signInWithPopup, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth, googleProvider } from '../config/firebase';
 
 const AuthContext = createContext();
@@ -42,8 +42,7 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = async () => {
     try {
-      // Force LocalStorage to prevent IndexedDB crashes in Chrome
-      await setPersistence(auth, browserLocalPersistence);
+      // Persistence is configured at initialization so this opens in the click gesture.
       const result = await signInWithPopup(auth, googleProvider);
       await syncWithBackend(result.user);
       return result;

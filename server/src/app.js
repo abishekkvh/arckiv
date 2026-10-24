@@ -37,7 +37,7 @@ app.get('/health', async (req, res) => {
     } catch { classifier.ready = false; }
   }
   const ready = databaseReady && (!classifier.required || classifier.ready);
-  res.status(ready ? 200 : 503).json({ status: ready ? 'ok' : 'unavailable', database: databaseReady ? 'connected' : 'unavailable', classifier });
+  res.status(ready ? 200 : 503).json({ status: ready ? 'ok' : 'unavailable', database: databaseReady ? 'connected' : 'unavailable', classifier, revision: process.env.RENDER_GIT_COMMIT || 'local' });
 });
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 app.use((error, req, res, next) => {
