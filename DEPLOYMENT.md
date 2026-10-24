@@ -15,7 +15,7 @@ Firebase Cloud Run / App Hosting require billing. This setup does not enable Fir
 ## Backend
 
 1. Make an Atlas Free cluster and a database user restricted to the `arckiv` database. Allow the backend's outbound IP ranges in Atlas Network Access. Do not expose the database to every IP unless you understand and accept that choice.
-2. Push only `deployment-package/` to a private GitHub repository; `python3 server/scripts/packageDeployment.py` prepares it. This excludes credentials, uploaded documents, backups, training data, and local dependencies.
+2. Push only `deployment-package/` to a public GitHub repository `abishekkvh/arckiv`; `python3 server/scripts/packageDeployment.py` prepares it. This excludes credentials, uploaded documents, backups, training data, and local dependencies.
 3. Connect that repository in Render. Create a **Free Docker** web service using `render.yaml`. Dockerfile is `./Dockerfile`, context is repository root, health path is `/health`. Do not set root directory to `server`.
 4. Set the secret variables from `server/.env.example` in Render's environment settings. Use a working Atlas URI (database `arckiv`), not the localhost URI. Set `FILE_STORAGE=gridfs`, `NODE_ENV=production`, and `CLIENT_URL` to the exact Firebase Hosting origin. Keep `ENABLE_VECTOR_SEARCH=false` unless an Atlas vector index has been configured.
 5. Confirm `https://YOUR-API.onrender.com/health` returns `{"status":"ok"}`.
@@ -95,4 +95,4 @@ For fully live Gemini integration, omit MOCK_GEMINI only when quota is available
 Stored evaluation reports are not an independent production accuracy guarantee.
 The current artifact checksum is recorded in `deploy/model-manifest.json`.
 
-First-time source publication still requires explicit approval; no remote GitHub repository has been created. See `NEXT_STEPS.md`. The deployment package intentionally excludes tests and fixtures; run verification commands from the original working tree.
+Source publication is complete: https://github.com/abishekkvh/arckiv is public, as explicitly requested by the owner. See `NEXT_STEPS.md`. The deployment package intentionally excludes tests and fixtures; run verification commands from the original working tree.

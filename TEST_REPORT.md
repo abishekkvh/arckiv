@@ -10,6 +10,7 @@
 - Existing default Hosting site (Orbit) was not overwritten.
 - Render dashboard accessible; existing project `arckiv` has no active services. No backend URL allocated.
 - Atlas: configured cluster hostname fails DNS (`ENOTFOUND`); Google sign-in remains stuck at the Atlas callback. No cloud DB connection verified. Existing local MongoDB works.
+- Update: source subsequently published to https://github.com/abishekkvh/arckiv as a **public** repository following explicit owner approval. The earlier blocked private-upload attempt below is historical.
 - Source-only deployment package exists locally. A private GitHub upload to `abishekkvh/arckiv` was rejected by automatic approval review: explicit consent to transmit source code and model artifact to this destination is required. No push occurred; no workaround attempted.
 - No billing enabled, paid resource created, credential rotated or existing user data migrated.
 

@@ -4,9 +4,9 @@ All existing work and the current V2 model are preserved. Read `TEST_REPORT.md` 
 
 ## Remaining inputs
 
-1. **Approve the private GitHub upload** of Arckiv source + V2 artifact to `abishekkvh/arckiv`. Automatic review blocked it until explicit approval. `deployment-package/` is ready locally; it contains no `.env` secrets, uploaded documents, training data or test PDFs. Do not push the outer College repository.
+1. **Source published:** https://github.com/abishekkvh/arckiv (public), explicitly authorized by the owner. The deployment package excludes credentials, uploaded documents, training data and test PDFs.
 2. **Complete Atlas sign-in and obtain a working connection URI.** The saved hostname does not resolve. Reuse an existing free cluster when possible. If a database password must be created/reset, complete that yourself; do not paste credentials into chat. Configure only the Render service's documented outbound ranges in Atlas Network Access, with appropriate approval for that access change.
-3. **Use existing Arckiv project in Render.** After approved source publication, connect the private repository, select Free Docker service, Dockerfile `./Dockerfile`, root context, health `/health`. Use `render.yaml` and `deploy/.env.example`. Reuse the current Firebase Admin/Gemini secrets from `server/.env` through Render's secure environment settings. Replace only the Atlas URI and production frontend origin as needed. No paid disk, worker, database or second ML service is required.
+3. **Use existing Arckiv project in Render.** Connect the public repository, select Free Docker service, Dockerfile `./Dockerfile`, root context, health `/health`. Use `render.yaml` and `deploy/.env.example`. Reuse the current Firebase Admin/Gemini secrets from `server/.env` through Render's secure environment settings. Replace only the Atlas URI and production frontend origin as needed. No paid disk, worker, database or second ML service is required.
 4. **Wait for backend health.** It must report `status: ok`, database connected, and V2 ID `arckiv-v2-logistic_regression-f0f7e2d35969`. Record the actual Render URL; do not guess it.
 5. **Deploy frontend.** The separate Hosting site and target already exist. From the original `arckiv` directory:
    ```sh
