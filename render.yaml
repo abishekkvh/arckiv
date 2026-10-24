@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: arckiv-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: CLASSIFIER_MIN_CONFIDENCE
+        value: "0.45"
+      - key: CLASSIFIER_ALLOW_DEMO
+        value: "false"
+      - key: MAX_AI_CONCURRENCY
+        value: "1"
+      - key: NODE_ENV
+        value: production
+      - key: FILE_STORAGE
+        value: gridfs
+      - key: ENABLE_VECTOR_SEARCH
+        value: "false"
+      - key: FIREBASE_PROJECT_ID
+        value: whatsapp-8fbf7
+      - key: CLIENT_URL
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

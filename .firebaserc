@@ -1,0 +1,13 @@
+{
+  "projects": {},
+  "targets": {
+    "whatsapp-8fbf7": {
+      "hosting": {
+        "arckiv": [
+          "arckiv-whatsapp-8fbf7"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
