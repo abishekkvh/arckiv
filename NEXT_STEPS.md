@@ -1,18 +1,29 @@
-# Finish Arckiv deployment
+# Finish the existing Arckiv deployment
 
-All existing work and the current V2 model are preserved. Read `TEST_REPORT.md` for what passed and what remains unverified.
+## Created — reuse these resources
 
-## Remaining inputs
+- Public repository: https://github.com/abishekkvh/arckiv (`main`)
+- Free Render Docker service: https://dashboard.render.com/web/srv-dbdvsgfavr4c739jqdlg
+- Allocated API URL: https://arckiv-api.onrender.com (not yet healthy)
+- Firebase Hosting site: https://arckiv-whatsapp-8fbf7.web.app (no app release published)
+- Firebase project: `whatsapp-8fbf7`; Hosting target: `arckiv`
 
-1. **Source published:** https://github.com/abishekkvh/arckiv (public), explicitly authorized by the owner. The deployment package excludes credentials, uploaded documents, training data and test PDFs.
-2. **Complete Atlas sign-in and obtain a working connection URI.** The saved hostname does not resolve. Reuse an existing free cluster when possible. If a database password must be created/reset, complete that yourself; do not paste credentials into chat. Configure only the Render service's documented outbound ranges in Atlas Network Access, with appropriate approval for that access change.
-3. **Use existing Arckiv project in Render.** Connect the public repository, select Free Docker service, Dockerfile `./Dockerfile`, root context, health `/health`. Use `render.yaml` and `deploy/.env.example`. Reuse the current Firebase Admin/Gemini secrets from `server/.env` through Render's secure environment settings. Replace only the Atlas URI and production frontend origin as needed. No paid disk, worker, database or second ML service is required.
-4. **Wait for backend health.** It must report `status: ok`, database connected, and V2 ID `arckiv-v2-logistic_regression-f0f7e2d35969`. Record the actual Render URL; do not guess it.
-5. **Deploy frontend.** The separate Hosting site and target already exist. From the original `arckiv` directory:
+Do not create duplicate services or enable billing. V2 artifact and threshold 0.45 remain unchanged.
+
+## Remaining blockers
+
+1. Complete Atlas sign-in and replace `MONGODB_ATLAS` in local `server/.env` with the working cluster URI. The current hostname fails DNS. Do not send credentials in chat. If a password must be reset, complete that yourself.
+2. Approve transfer of existing `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`, `GEMINI_API_KEY` and the corrected Atlas URI into **Render arckiv-api secure environment settings**, or enter them yourself at https://dashboard.render.com/web/srv-dbdvsgfavr4c739jqdlg/env . Set Render `MONGODB_URI` to the corrected Atlas URI. Automatic approval review blocked the credential import pending explicit approval; nothing secret was transferred.
+3. Approve/configure Atlas network access for the Render service's shared outbound CIDRs: `74.220.48.0/24`, `74.220.56.0/24`. No network-access changes have been made. Recheck these ranges in Render Connect before use.
+4. Wait for Render to deploy successfully. The first cloud build failed because npm 10 required a missing lockfile entry; the repaired lockfile was validated with a clean npm 10 production install. Public health must return `status: ok`, database connected, and V2 model `arckiv-v2-logistic_regression-f0f7e2d35969`.
+5. From the original `arckiv` directory, publish the frontend only after API health passes:
+
    ```sh
-   VITE_API_URL=https://ACTUAL_RENDER_HOST.onrender.com firebase deploy --only hosting:arckiv --project whatsapp-8fbf7 --account abishekvh@gmail.com
+   VITE_API_URL=https://arckiv-api.onrender.com firebase deploy --only hosting:arckiv --project whatsapp-8fbf7 --account abishekvh@gmail.com
    ```
-   Existing client Firebase config stays in `client/.env.local`. The predeploy script checks the backend and builds the frontend. Add `arckiv-whatsapp-8fbf7.web.app` to Firebase Auth authorized domains if needed, preserving existing entries; this account setting needs approval if performed by an agent.
-6. **Final public verification.** Open https://arckiv-whatsapp-8fbf7.web.app only after publication. Test Google sign-in/out, synthetic PDF upload, extraction, V2 classification, preview/download, search, chat, share/revoke/delete, refresh on a deep route, and retrieval after a Render restart. Repeat live Gemini tests only after quota resets. Current key hit its daily quota; no paid upgrade is necessary or authorized.
 
-See `DEPLOYMENT.md` for future redeploy commands. Real production URLs and Atlas status must be recorded after these steps; they cannot truthfully be supplied yet.
+   `client/.env.production` now contains the actual API origin. Existing Firebase client configuration remains in `.env.local`. Never put server secrets into VITE variables.
+6. Confirm `arckiv-whatsapp-8fbf7.web.app` is an authorized Firebase Auth domain. Adding it is an account setting requiring approval if performed by an agent.
+7. Test the public app: Google sign-in/out, PDF upload, extraction, V2 classification, fallback, preview/download, search, chat, sharing/revocation/deletion, deep-route refresh, and retrieval after a Render restart. Prior live Gemini chat reached the free daily quota; repeat once quota is available. No paid upgrade is authorized.
+
+The Render dashboard is configured for automatic deploys on commits to `main`. See `DEPLOYMENT.md` for update commands. Public end-to-end tests remain unverified until the above blockers are resolved.

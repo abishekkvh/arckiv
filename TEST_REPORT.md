@@ -8,7 +8,7 @@
 - Separate site **arckiv-whatsapp-8fbf7** created successfully; local target `arckiv` configured in `.firebaserc`.
 - Reserved URL: https://arckiv-whatsapp-8fbf7.web.app — no application release uploaded.
 - Existing default Hosting site (Orbit) was not overwritten.
-- Render dashboard accessible; existing project `arckiv` has no active services. No backend URL allocated.
+- Update: free Docker service `arckiv-api` created in existing Render project `arckiv`, service ID `srv-dbdvsgfavr4c739jqdlg`; allocated URL https://arckiv-api.onrender.com . Build initiated; credentials and Atlas still pending, API not yet healthy.
 - Atlas: configured cluster hostname fails DNS (`ENOTFOUND`); Google sign-in remains stuck at the Atlas callback. No cloud DB connection verified. Existing local MongoDB works.
 - Update: source subsequently published to https://github.com/abishekkvh/arckiv as a **public** repository following explicit owner approval. The earlier blocked private-upload attempt below is historical.
 - Source-only deployment package exists locally. A private GitHub upload to `abishekkvh/arckiv` was rejected by automatic approval review: explicit consent to transmit source code and model artifact to this destination is required. No push occurred; no workaround attempted.
@@ -57,3 +57,11 @@ The local idle supervisor/ML/Node processes used approximately 140 MB RSS combin
 Free Render sleeps after inactivity and workspace hours are shared with other services. Atlas free storage is limited. Gemini quotas can block extraction/chat; saved files remain available. These are demo constraints, not an always-on production SLA.
 
 Sources: https://render.com/docs/free ; https://render.com/docs/docker ; https://firebase.google.com/docs/hosting/usage-quotas-pricing ; https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/
+
+## Public repository / Render continuation
+
+The owner subsequently explicitly requested a public repository. The scanned source-only package and V2 artifact were pushed to https://github.com/abishekkvh/arckiv; visibility PUBLIC was verified. No real `.env`, training data or user documents were included.
+
+A Free ($0/month, 512 MB) Docker web service was created in the existing Render Arckiv project: `srv-dbdvsgfavr4c739jqdlg`, https://arckiv-api.onrender.com. Its first build failed at npm ci. Reproducing with npm 10 identified a missing `gcp-metadata@7.0.1` lockfile entry. The lockfile was repaired and newly reported body-parser vulnerability patched within its dependency range. An isolated npm 10 clean production install then succeeded with zero audit findings.
+
+Credentials have not been transferred: automatic approval review blocked opening the environment import pending explicit permission for the existing Firebase Admin credentials, Gemini key and corrected Atlas URI to go to this Render service. Atlas DNS still fails. The public API health request timed out. The site is not ready for frontend publication or production claims.
