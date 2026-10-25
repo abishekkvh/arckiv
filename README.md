@@ -105,33 +105,6 @@ flowchart TD
 
 ---
 
-## Quick Start
-
-### Prerequisites
-- Node.js $\ge 22$, Python $\ge 3.11$, MongoDB Atlas cluster with Vector Search index, Google Gemini API key, Firebase project credentials.
-
-### Environment Configuration
-
-Configure `server/.env` and `client/.env.local`:
-
-```bash
-# Server Environment (server/.env)
-PORT=5001
-MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/arckiv
-FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
-GEMINI_API_KEY=your_gemini_api_key
-ENABLE_VECTOR_SEARCH=true
-FILE_STORAGE=gridfs
-CLASSIFIER_URL=http://127.0.0.1:8001
-CLASSIFIER_MIN_CONFIDENCE=0.45
-
-# Client Environment (client/.env.local)
-VITE_API_URL=http://localhost:5001
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your_project_id
-```
-
 ### Installation & Execution
 
 ```bash
