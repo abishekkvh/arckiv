@@ -1,4 +1,4 @@
-# Deployment verification — 24 October 2026 (IST)
+# Deployment verification — 25 October 2026 (IST)
 
 ## Current deployment
 
@@ -35,9 +35,11 @@ Also verified: frontend and deep route return HTTP 200 with the same SPA documen
 
 The initial Render build exposed a lockfile entry missing under npm 10. The repaired lockfile and patched body-parser passed clean installation and regression tests; Render subsequently deployed successfully. Prior Gemini quota exhaustion was transient; extraction and chat both passed in the current public tests.
 
-## Final checks in progress
+## Restart and domain verification
 
-PASS: a synthetic original was retrieved byte-for-byte from GridFS after real redeployment to dfb5fc4; synthetic test records were cleaned up. Browser sign-in/upload/preview verification is in progress. Safari initially blocked a popup after an asynchronous persistence-setting call; persistence has now moved to Firebase initialization and the frontend is being republished for retest.
+PASS: a synthetic original was retrieved byte-for-byte from GridFS after real redeployment to dfb5fc4; synthetic test records were cleaned up. Safari popup initialization was fixed and published. The old-domain signed-in dashboard was observed. The new-domain login page renders, but a complete browser sign-in/upload/preview sequence remains unverified because Safari changed tabs during interaction. API-level authentication, upload and preview checks are recorded separately above.
+
+The canonical site is now arckiv.web.app. Hosting deployment, SPA deep links, Firebase authorized-domain preservation, and live CORS preflight for Authorization/Content-Type passed. Render revision a600645 confirms the new origin is active with Atlas and ML V2 healthy.
 
 ## Limits
 

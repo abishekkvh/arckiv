@@ -691,7 +691,7 @@ router.post('/:id/shares', requireAuth, resolveDbUser, async (req, res) => {
         isActive: share.isActive,
         createdAt: share.createdAt
       },
-      shareUrl: `${(process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '')}/shared/${rawToken}`
+      shareUrl: `${(process.env.PUBLIC_CLIENT_URL || (process.env.NODE_ENV === 'production' ? 'https://arckiv.web.app' : process.env.CLIENT_URL || 'http://localhost:5173')).replace(/\/$/, '')}/shared/${rawToken}`
     });
   } catch (error) {
     console.error('Create Share Error:', error);
