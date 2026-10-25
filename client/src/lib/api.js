@@ -3,10 +3,16 @@ export const apiUrl = (path) => `${API_BASE}${path}`;
 
 export async function fetchDocumentBlob(doc, user) {
   const token = await user.getIdToken();
-  const response = await fetch(apiUrl(`/api/documents/${doc._id}/file`), {
+  let response;
+  try { response = await fetch(apiUrl(`/api/documents/${doc._id}/file`), {
     headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(120000),
-  });
-  if (!response.ok) throw new Error('Unable to open document. Please try again.');
+  }); } catch {
+    throw new Error('The file could not be downloaded. The server may be waking up; please try again shortly.');
+  }
+  if (!response.ok) {
+    const details = await response.json().catch(() => ({}));
+    throw new Error(details.error || 'Unable to open document. Please try again.');
+  }
   return URL.createObjectURL(await response.blob());
 }
 

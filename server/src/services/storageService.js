@@ -36,6 +36,14 @@ function localPath(version) {
 }
 async function streamDocument(document, res, download = false) {
   const version = await versionFor(document);
+  // Check availability before pipeline can destroy the HTTP response on ENOENT.
+  const unavailable = () => Object.assign(new Error('The original file is unavailable on this server. It may need to be migrated from local storage.'), { status: 404 });
+  if (version.storageProvider === 'gridfs') {
+    if (!mongoose.isValidObjectId(version.storageKey) || !await bucket().find({ _id: new mongoose.Types.ObjectId(version.storageKey) }).hasNext()) throw unavailable();
+  } else {
+    try { await fs.promises.access(localPath(version), fs.constants.R_OK); }
+    catch (error) { if (error.code === 'ENOENT' || error.code === 'EACCES') throw unavailable(); throw error; }
+  }
   const source = version.storageProvider === 'gridfs'
     ? bucket().openDownloadStream(new mongoose.Types.ObjectId(version.storageKey))
     : fs.createReadStream(localPath(version));
