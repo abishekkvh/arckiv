@@ -14,14 +14,66 @@ import {
   Prohibit, 
   Spinner,
   ArrowSquareOut,
-  Sparkle
+  Sparkle,
+  CaretDown,
+  Lightning,
+  CalendarBlank,
+  CalendarDots,
+  LockKey,
+  SlidersHorizontal
 } from '@phosphor-icons/react';
 import { QRCodeSVG } from 'qrcode.react';
+
+const DURATION_OPTIONS = [
+  {
+    value: '1h',
+    label: '1 Hour',
+    description: 'Quick ephemeral link for fast reviews',
+    badge: 'Short',
+    icon: Lightning,
+    iconColor: 'text-amber-500',
+    iconBg: 'bg-amber-50 dark:bg-amber-950/40'
+  },
+  {
+    value: '24h',
+    label: '24 Hours (1 Day)',
+    description: 'Standard temporary access (Recommended)',
+    badge: 'Popular',
+    icon: Clock,
+    iconColor: 'text-blue-600',
+    iconBg: 'bg-blue-50 dark:bg-blue-950/40'
+  },
+  {
+    value: '7d',
+    label: '7 Days (1 Week)',
+    description: 'Extended review window for team members',
+    icon: CalendarBlank,
+    iconColor: 'text-indigo-600',
+    iconBg: 'bg-indigo-50 dark:bg-indigo-950/40'
+  },
+  {
+    value: '30d',
+    label: '30 Days (1 Month)',
+    description: 'Long-term read/download access',
+    icon: CalendarDots,
+    iconColor: 'text-purple-600',
+    iconBg: 'bg-purple-50 dark:bg-purple-950/40'
+  },
+  {
+    value: 'custom',
+    label: 'Custom Date & Time',
+    description: 'Specify an exact calendar expiration timestamp',
+    icon: SlidersHorizontal,
+    iconColor: 'text-teal-600',
+    iconBg: 'bg-teal-50 dark:bg-teal-950/40'
+  }
+];
 
 export default function DocumentShareModal({ isOpen, onClose, document, currentUser }) {
   const [expiresIn, setExpiresIn] = useState('24h');
   const [permission, setPermission] = useState('view');
   const [customDate, setCustomDate] = useState('');
+  const [durationDropdownOpen, setDurationDropdownOpen] = useState(false);
   
   const [generating, setGenerating] = useState(false);
   const [latestShare, setLatestShare] = useState(null);
@@ -33,6 +85,26 @@ export default function DocumentShareModal({ isOpen, onClose, document, currentU
   const [error, setError] = useState(null);
 
   const qrRef = useRef(null);
+  const durationDropdownRef = useRef(null);
+
+  // Close dropdown on click outside or escape
+  useEffect(() => {
+    if (!durationDropdownOpen) return;
+    const handleClickOutside = (e) => {
+      if (durationDropdownRef.current && !durationDropdownRef.current.contains(e.target)) {
+        setDurationDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setDurationDropdownOpen(false);
+    };
+    window.document.addEventListener('mousedown', handleClickOutside);
+    window.document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.document.removeEventListener('mousedown', handleClickOutside);
+      window.document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [durationDropdownOpen]);
 
   // Fetch active and existing shares when modal opens
   const fetchShares = async () => {
@@ -62,11 +134,15 @@ export default function DocumentShareModal({ isOpen, onClose, document, currentU
       setExpiresIn('24h');
       setPermission('view');
       setCustomDate('');
+      setDurationDropdownOpen(false);
       fetchShares();
     }
   }, [isOpen, document]);
 
   if (!isOpen || !document) return null;
+
+  const selectedDuration = DURATION_OPTIONS.find(o => o.value === expiresIn) || DURATION_OPTIONS[1];
+  const SelectedDurationIcon = selectedDuration.icon;
 
   const handleGenerateShare = async () => {
     setGenerating(true);
@@ -186,71 +262,278 @@ export default function DocumentShareModal({ isOpen, onClose, document, currentU
 
         {/* Scrollable Body */}
         <div className="overflow-y-auto flex-1 p-6 space-y-6">
-          {/* Create Share Configuration */}
-          <div className="bg-[var(--surface-hover)] border border-[var(--border)] p-5 rounded-2xl space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)] flex items-center gap-1.5">
-                <ShieldCheck size={16} weight="bold" />
-                <span>Create Time-Limited Share Link</span>
-              </h3>
+          {/* Create Share Configuration Card */}
+          <div className="bg-gradient-to-b from-blue-50/40 via-white to-slate-50/50 dark:from-blue-950/20 dark:via-[var(--surface)] dark:to-[var(--surface)] border border-blue-200/80 dark:border-blue-900/40 p-6 rounded-3xl space-y-5 shadow-xs">
+            {/* Card Header & Security Badge */}
+            <div className="flex items-center justify-between pb-3 border-b border-blue-100/70 dark:border-blue-900/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                  <ShieldCheck size={16} weight="bold" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-gray-950 dark:text-white">
+                    Create Time-Limited Share Link
+                  </h3>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                    Generates a cryptographically signed zero-knowledge link
+                  </p>
+                </div>
+              </div>
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 text-[10px] font-bold border border-emerald-200/60 dark:border-emerald-800/40">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                SHA-256 Protected
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Expiration Selector */}
-              <div>
-                <label className="block text-xs font-semibold text-[var(--muted)] mb-1.5 flex items-center gap-1">
-                  <Clock size={14} /> Expiration Duration
+            {/* Recipient Permission (Selection Cards) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                  <LockKey size={14} className="text-blue-600" weight="bold" />
+                  <span>Recipient Permission</span>
                 </label>
-                <select
-                  value={expiresIn}
-                  onChange={(e) => setExpiresIn(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--color-primary)]"
-                >
-                  <option value="1h">1 Hour</option>
-                  <option value="24h">24 Hours (1 Day)</option>
-                  <option value="7d">7 Days</option>
-                  <option value="30d">30 Days</option>
-                  <option value="custom">Custom Date/Time</option>
-                </select>
+                <span className="text-[11px] text-gray-400">Controls what the recipient can do</span>
               </div>
 
-              {/* Permission Selector */}
-              <div>
-                <label className="block text-xs font-semibold text-[var(--muted)] mb-1.5 flex items-center gap-1">
-                  <Eye size={14} /> Recipient Permission
-                </label>
-                <select
-                  value={permission}
-                  onChange={(e) => setPermission(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--color-primary)]"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* View Only Option */}
+                <button
+                  type="button"
+                  onClick={() => setPermission('view')}
+                  className={`p-3.5 rounded-2xl border text-left transition-all duration-200 flex items-start gap-3 relative cursor-pointer ${
+                    permission === 'view'
+                      ? 'bg-blue-50/90 dark:bg-blue-950/50 border-blue-500 ring-2 ring-blue-500/20 shadow-xs'
+                      : 'bg-white dark:bg-gray-900 border-gray-200/90 dark:border-gray-800 hover:border-gray-300 hover:bg-gray-50/60'
+                  }`}
                 >
-                  <option value="view">View Only (No Download)</option>
-                  <option value="download">View & Download File</option>
-                </select>
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                    permission === 'view' ? 'bg-blue-600 text-white shadow-xs' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                  }`}>
+                    <Eye size={16} weight="bold" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-bold ${permission === 'view' ? 'text-blue-950 dark:text-blue-100' : 'text-gray-900 dark:text-white'}`}>
+                        View Only
+                      </span>
+                      {permission === 'view' && (
+                        <div className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">
+                          <Check size={11} weight="bold" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">
+                      Browser preview only. Downloads blocked.
+                    </p>
+                  </div>
+                </button>
+
+                {/* View & Download Option */}
+                <button
+                  type="button"
+                  onClick={() => setPermission('download')}
+                  className={`p-3.5 rounded-2xl border text-left transition-all duration-200 flex items-start gap-3 relative cursor-pointer ${
+                    permission === 'download'
+                      ? 'bg-emerald-50/90 dark:bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs'
+                      : 'bg-white dark:bg-gray-900 border-gray-200/90 dark:border-gray-800 hover:border-gray-300 hover:bg-gray-50/60'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                    permission === 'download' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                  }`}>
+                    <DownloadSimple size={16} weight="bold" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-bold ${permission === 'download' ? 'text-emerald-950 dark:text-emerald-100' : 'text-gray-900 dark:text-white'}`}>
+                        View & Download
+                      </span>
+                      {permission === 'download' && (
+                        <div className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
+                          <Check size={11} weight="bold" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">
+                      Full access to view and download original file.
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Expiration Duration (Custom Selectable Dropdown & Quick Chips) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                  <Clock size={14} className="text-blue-600" weight="bold" />
+                  <span>Expiration Duration</span>
+                </label>
+                <span className="text-[11px] text-gray-400">Link auto-deactivates after this window</span>
+              </div>
+
+              {/* Custom Dropdown Trigger */}
+              <div ref={durationDropdownRef} className="relative z-20">
+                <button
+                  type="button"
+                  onClick={() => setDurationDropdownOpen((prev) => !prev)}
+                  className={`w-full px-4 py-3 bg-white dark:bg-gray-900 border rounded-2xl text-left flex items-center justify-between transition-all duration-200 shadow-2xs cursor-pointer ${
+                    durationDropdownOpen
+                      ? 'border-blue-500 ring-2 ring-blue-500/20 bg-blue-50/20'
+                      : 'border-gray-200/90 dark:border-gray-800 hover:border-blue-300'
+                  }`}
+                  aria-haspopup="listbox"
+                  aria-expanded={durationDropdownOpen}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-8 h-8 rounded-xl ${selectedDuration.iconBg} ${selectedDuration.iconColor} flex items-center justify-center shrink-0`}>
+                      <SelectedDurationIcon size={16} weight="bold" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-950 dark:text-white truncate">
+                          {selectedDuration.label}
+                        </span>
+                        {selectedDuration.badge && (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                            {selectedDuration.badge}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-gray-400 truncate">
+                        {selectedDuration.description}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-400 shrink-0 ml-2">
+                    <span className="text-[11px] font-medium hidden sm:inline text-gray-400">Select</span>
+                    <CaretDown
+                      size={14}
+                      weight="bold"
+                      className={`transition-transform duration-200 ${durationDropdownOpen ? 'rotate-180 text-blue-600' : ''}`}
+                    />
+                  </div>
+                </button>
+
+                {/* Custom Animated Floating Menu */}
+                <AnimatePresence>
+                  {durationDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                      transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute top-full left-0 right-0 mt-2 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/90 dark:border-gray-800 shadow-2xl rounded-2xl p-1.5 space-y-1 ring-1 ring-black/5"
+                    >
+                      {DURATION_OPTIONS.map((opt) => {
+                        const Icon = opt.icon;
+                        const isSelected = expiresIn === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              setExpiresIn(opt.value);
+                              setDurationDropdownOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-blue-50/90 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 text-blue-950 dark:text-blue-100 shadow-xs'
+                                : 'hover:bg-gray-100/70 dark:hover:bg-gray-800/70 text-gray-700 dark:text-gray-300 border border-transparent'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={`w-8 h-8 rounded-xl ${opt.iconBg} ${opt.iconColor} flex items-center justify-center shrink-0`}>
+                                <Icon size={16} weight="bold" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                                    {opt.label}
+                                  </span>
+                                  {opt.badge && (
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                                      {opt.badge}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                                  {opt.description}
+                                </p>
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 ml-2">
+                                <Check size={12} weight="bold" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Quick Duration Pills */}
+              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mr-1">Quick Select:</span>
+                {DURATION_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setExpiresIn(opt.value)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+                      expiresIn === opt.value
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-white dark:bg-gray-900 border border-gray-200/90 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300'
+                    }`}
+                  >
+                    {opt.value === '1h' ? '1 Hour' : opt.value === '24h' ? '24 Hours' : opt.value === '7d' ? '7 Days' : opt.value === '30d' ? '30 Days' : 'Custom'}
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Custom Expiration Picker */}
             {expiresIn === 'custom' && (
-              <div>
-                <label className="block text-xs font-semibold text-[var(--muted)] mb-1.5">Select Expiration Date & Time</label>
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="p-4 bg-white dark:bg-gray-900 border border-blue-200/90 dark:border-blue-900/60 rounded-2xl space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                    <SlidersHorizontal size={14} className="text-teal-600" weight="bold" />
+                    <span>Exact Expiration Timestamp</span>
+                  </label>
+                  <span className="text-[10px] text-teal-600 font-semibold bg-teal-50 dark:bg-teal-950/40 px-2 py-0.5 rounded-full">
+                    Custom Scheduled
+                  </span>
+                </div>
                 <input
                   type="datetime-local"
                   value={customDate}
+                  min={new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0, 16)}
                   onChange={(e) => setCustomDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--color-primary)]"
+                  className="w-full px-3.5 py-2.5 bg-gray-50/70 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 />
-              </div>
+                <p className="text-[11px] text-gray-400">
+                  Access will automatically terminate and token will be invalidated at this exact date and time.
+                </p>
+              </motion.div>
             )}
 
             {error && (
-              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg font-medium">{error}</p>
+              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl font-medium border border-red-200 dark:border-red-800/40">{error}</p>
             )}
 
+            {/* Generate Action Button */}
             <button
               onClick={handleGenerateShare}
               disabled={generating || (expiresIn === 'custom' && !customDate)}
-              className="w-full py-3 bg-[var(--color-primary)] hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 active:scale-98 disabled:opacity-50"
+              className="w-full py-3.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 active:scale-[0.99] disabled:opacity-50 cursor-pointer"
             >
               {generating ? <Spinner size={18} className="animate-spin" /> : <Sparkle size={18} weight="fill" />}
               <span>{generating ? 'Generating Secure Link...' : 'Generate Share Link & QR'}</span>
@@ -358,25 +641,25 @@ export default function DocumentShareModal({ isOpen, onClose, document, currentU
                 return (
                   <div
                     key={share._id}
-                    className={`p-3.5 rounded-xl border text-xs flex items-center justify-between gap-3 ${
+                    className={`p-3.5 rounded-2xl border text-xs flex items-center justify-between gap-3 transition-all ${
                       isEffectivelyActive 
-                        ? 'bg-[var(--surface-hover)] border-[var(--border)]' 
-                        : 'bg-gray-100/40 dark:bg-gray-900/30 border-dashed border-gray-300 dark:border-gray-800 opacity-60'
+                        ? 'bg-white dark:bg-gray-900 border-gray-200/90 dark:border-gray-800 shadow-2xs' 
+                        : 'bg-gray-50/70 dark:bg-gray-900/30 border-gray-200/80 dark:border-gray-800/80 opacity-70'
                     }`}
                   >
                     <div className="space-y-1 min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] uppercase tracking-wider ${
+                        <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider ${
                           isEffectivelyActive 
-                            ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400' 
-                            : 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400'
+                            ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40' 
+                            : 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40'
                         }`}>
                           {share.isActive ? (isExpired ? 'Expired' : 'Active') : 'Revoked'}
                         </span>
-                        <span className="font-semibold text-[var(--foreground)] capitalize">
+                        <span className="font-bold text-gray-900 dark:text-white capitalize text-xs">
                           {share.permission === 'download' ? 'View & Download' : 'View Only'}
                         </span>
-                        <span className="text-[11px] text-[var(--muted)]">
+                        <span className="text-[11px] text-gray-400">
                           • {share.accessCount || 0} access{(share.accessCount || 0) === 1 ? '' : 'es'}
                         </span>
                       </div>

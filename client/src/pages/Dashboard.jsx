@@ -214,7 +214,7 @@ export default function Dashboard() {
           </div>
           <AnimatedText 
             text={`Welcome back, ${userName}`} 
-            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-950 tracking-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-950 font-heading tracking-normal"
           />
           <p className="text-gray-500 mt-2 text-sm sm:text-base font-medium">
             Intelligence overview, document vectors, and audit trails across your workspace.
@@ -258,8 +258,8 @@ export default function Dashboard() {
               <HardDrives size={20} weight="duotone" />
             </div>
           </div>
-          <div className="mt-4 flex items-baseline gap-1">
-            <h3 className="text-3xl font-extrabold text-gray-950 font-heading font-mono">
+          <div className="mt-4 flex items-baseline gap-2">
+            <h3 className="text-3xl font-extrabold text-gray-950 font-heading">
               <CountUp to={overview.totalStorageMB} decimals={2} />
             </h3>
             <span className="text-xs font-semibold text-gray-400">MB</span>

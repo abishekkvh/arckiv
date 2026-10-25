@@ -116,7 +116,7 @@ export default function Upload() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pt-6">
       <div>
-        <AnimatedText text="Upload Document" className="text-4xl font-bold text-[var(--foreground)] tracking-tight" />
+        <AnimatedText text="Upload Document" className="text-4xl font-bold text-[var(--foreground)] font-heading tracking-normal" />
         <motion.p 
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
           className="text-[var(--muted)] mt-2 font-medium"

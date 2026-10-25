@@ -157,7 +157,7 @@ export default function MyFiles() {
         <div>
           <AnimatedText 
             text="Document Library" 
-            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-950 tracking-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-950 font-heading tracking-normal"
           />
           <p className="text-gray-500 mt-2 text-sm sm:text-base font-medium">
             Explore, filter, search, and manage all your verified documents in one place.
