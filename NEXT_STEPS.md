@@ -1,6 +1,6 @@
 # Arckiv is published
 
-Open https://arckiv-whatsapp-8fbf7.web.app . API: https://arckiv-api.onrender.com .
+Open https://arckiv.web.app . API: https://arckiv-api.onrender.com .
 
 Atlas connectivity is restored. Approved secrets are configured in Render. The new Hosting domain has been added to Firebase Auth while preserving all existing authorized domains. No credentials need to be filled in for the current deployment.
 

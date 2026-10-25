@@ -4,6 +4,8 @@ const cors = require('cors');
 const app = express();
 app.disable('x-powered-by');
 const origins = new Set((process.env.CLIENT_URL || 'http://localhost:5173').split(',').map(s => s.trim().replace(/\/$/, '')));
+// Canonical Firebase site; retain configured origins during the domain migration.
+if (process.env.NODE_ENV === 'production') origins.add('https://arckiv.web.app');
 app.use(cors({
   origin(origin, callback) {
     if (!origin || origins.has(origin) || (process.env.NODE_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin))) return callback(null, true);

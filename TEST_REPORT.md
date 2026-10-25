@@ -2,7 +2,7 @@
 
 ## Current deployment
 
-- Firebase Hosting published: https://arckiv-whatsapp-8fbf7.web.app
+- Firebase Hosting published: https://arckiv.web.app
 - Render Free Docker API: https://arckiv-api.onrender.com
 - Atlas connection and ping succeeded; public health confirms the database is connected.
 - FastAPI runs privately inside the same container. Public health confirms model `arckiv-v2-logistic_regression-f0f7e2d35969`, threshold **0.45**.
@@ -37,7 +37,7 @@ The initial Render build exposed a lockfile entry missing under npm 10. The repa
 
 ## Final checks in progress
 
-A synthetic original is being retained across a real redeploy to verify persistence after process replacement. Browser sign-in/upload/preview verification is in progress. Safari initially blocked a popup after an asynchronous persistence-setting call; persistence has now moved to Firebase initialization and the frontend is being republished for retest.
+PASS: a synthetic original was retrieved byte-for-byte from GridFS after real redeployment to dfb5fc4; synthetic test records were cleaned up. Browser sign-in/upload/preview verification is in progress. Safari initially blocked a popup after an asynchronous persistence-setting call; persistence has now moved to Firebase initialization and the frontend is being republished for retest.
 
 ## Limits
 

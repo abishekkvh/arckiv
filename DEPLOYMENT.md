@@ -1,6 +1,6 @@
 # Arckiv deployment
 
-- Frontend: https://arckiv-whatsapp-8fbf7.web.app
+- Frontend: https://arckiv.web.app
 - API: https://arckiv-api.onrender.com
 - Repository: https://github.com/abishekkvh/arckiv
 - Render dashboard: https://dashboard.render.com/web/srv-dbdvsgfavr4c739jqdlg

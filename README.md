@@ -1,6 +1,6 @@
 # Arckiv — AI-Powered Document Management
 
-**Live app:** https://arckiv-whatsapp-8fbf7.web.app  
+**Live app:** https://arckiv.web.app  
 **API health:** https://arckiv-api.onrender.com/health
 
 React, Firebase Authentication, Express, MongoDB GridFS, Gemini extraction/chat,
