@@ -599,7 +599,8 @@ router.post('/:id/chat', requireAuth, resolveDbUser, aiLimit, async (req, res) =
   } catch (error) {
     console.error('Chat Error:', error);
     if (error.status === 429) return res.status(429).json({ error: 'AI quota is temporarily exhausted. Your document is saved; please try chat again after the quota resets.' });
-    res.status(500).json({ error: 'Internal Server Error' });
+    if (error.status === 504) return res.status(504).json({ error: 'AI took too long to answer. Your file is safe. Please try a more specific question.' });
+    res.status(502).json({ error: 'The AI service could not answer this question. Your file is safe; please try again shortly.' });
   }
 });
 
