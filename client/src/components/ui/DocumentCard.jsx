@@ -1,3 +1,4 @@
+import DocumentSummaryModal from './DocumentSummaryModal';
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { fetchDocumentBlob, openDocument } from '../../lib/api';
@@ -23,6 +24,7 @@ export default function DocumentCard({ doc, idx, onView, onDelete, onChat, onEdi
   const { currentUser } = useAuth();
   const [previewUrl, setPreviewUrl] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -59,6 +61,8 @@ export default function DocumentCard({ doc, idx, onView, onDelete, onChat, onEdi
   const isImage = doc.type?.includes('image');
 
   return (
+    <>
+    {summaryOpen && <DocumentSummaryModal doc={doc} onClose={()=>setSummaryOpen(false)} />}
     <motion.div 
       initial={{ opacity: 0, scale: 0.96, y: 15 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -163,6 +167,7 @@ export default function DocumentCard({ doc, idx, onView, onDelete, onChat, onEdi
               className="absolute right-0 top-full mt-2 w-52 rounded-2xl bg-white/95 backdrop-blur-xl border border-gray-200/90 shadow-2xl p-1.5 z-30 ring-1 ring-black/5"
               onClick={(e) => e.stopPropagation()}
             >
+              <button type="button" onClick={()=>{setMenuOpen(false);setSummaryOpen(true);}} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 hover:bg-blue-50"><Sparkle size={18} />Summary</button>
               <button 
                 type="button"
                 onClick={() => { setMenuOpen(false); if (onChat) onChat(doc); }}
@@ -274,5 +279,6 @@ export default function DocumentCard({ doc, idx, onView, onDelete, onChat, onEdi
         </div>
       </div>
     </motion.div>
+    </>
   );
 }

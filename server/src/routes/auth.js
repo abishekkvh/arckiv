@@ -23,7 +23,8 @@ router.post('/sync', requireAuth, async (req, res) => {
         email: user.email,
         name: user.name,
         profilePicture: user.profilePicture,
-        storageUsed: user.storageUsed
+        storageUsed: user.storageUsed,
+        isAdmin: require('../middleware/admin').isAdmin(req.user)
       }
     });
   } catch (error) {

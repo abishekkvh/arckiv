@@ -1,8 +1,11 @@
+import { MotionConfig } from 'framer-motion';
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import Login from './pages/Login';
+const Admin = lazy(() => import('./pages/Admin'));
+const ProjectGuide = lazy(() => import('./pages/ProjectGuide'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const MyFiles = lazy(() => import('./pages/MyFiles'));
 const Upload = lazy(() => import('./pages/Upload'));
@@ -14,6 +17,7 @@ import ErrorBoundary from './components/ui/ErrorBoundary';
 function App() {
   return (
     <ErrorBoundary>
+      <MotionConfig reducedMotion="user">
       <AuthProvider>
         <Router>
           <Suspense fallback={<div className="min-h-screen flex items-center justify-center" role="status">Loading Arckiv…</div>}>
@@ -30,6 +34,8 @@ function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="my-files" element={<MyFiles />} />
               <Route path="upload" element={<Upload />} />
+              <Route path="admin" element={<Admin />} />
+              <Route path="project-guide" element={<ProjectGuide />} />
             </Route>
 
             {/* 404 Catch-All Route */}
@@ -38,6 +44,7 @@ function App() {
           </Suspense>
         </Router>
       </AuthProvider>
+    </MotionConfig>
     </ErrorBoundary>
   );
 }

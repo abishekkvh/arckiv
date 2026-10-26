@@ -1,6 +1,6 @@
 import { apiUrl } from '../lib/api';
 import { createContext, useContext, useState, useEffect } from 'react';
-import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { signInWithPopup, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth, googleProvider } from '../config/firebase';
 
 const AuthContext = createContext();
@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
   const syncWithBackend = async (firebaseUser) => {
     setSyncError('');
     try {
-      const token = await firebaseUser.getIdToken();
+      const token = await firebaseUser.getIdToken(true);
       
       const response = await fetch(apiUrl('/api/auth/sync'), {
         method: 'POST',
@@ -79,6 +79,9 @@ export function AuthProvider({ children }) {
     currentUser,
     dbUser, // Contains MongoDB _id and custom fields
     loginWithGoogle,
+    loginWithEmail: (email, password) => signInWithEmailAndPassword(auth, email.trim(), password),
+    registerWithEmail: (email, password) => createUserWithEmailAndPassword(auth, email.trim(), password),
+    resetPassword: email => sendPasswordResetEmail(auth, email.trim()),
     logout,
     loading,
     syncError,

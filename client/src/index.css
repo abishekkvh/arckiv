@@ -122,3 +122,12 @@
     scroll-behavior: auto !important;
   }
 }
+
+.form-field { display: block; width: 100%; margin-top: .35rem; padding: .7rem .85rem; border: 1px solid #cbd5e1; border-radius: .75rem; background: white; }
+.form-field:focus { outline: 2px solid #2563eb; outline-offset: 2px; }
+.feature-enter { animation: feature-enter .3s ease-out; }
+@keyframes feature-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.study-match { background: #eff6ff; border-color: #93c5fd !important; }
+.study-hidden { display: none !important; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+@media print { nav, button { display: none !important; } main { color: black; background: white; } }

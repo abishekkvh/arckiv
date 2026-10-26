@@ -22,7 +22,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import ProfileModal from '../ui/ProfileModal';
 
 export default function Navigation() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, dbUser, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const searchInputRef = useRef(null);
@@ -116,6 +116,8 @@ export default function Navigation() {
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'My Files', path: '/my-files' },
     { name: 'Upload', path: '/upload' },
+    { name: 'Guide', path: '/project-guide' },
+    ...(dbUser?.isAdmin ? [{name: 'Admin', path: '/admin'}] : []),
   ];
 
   return (

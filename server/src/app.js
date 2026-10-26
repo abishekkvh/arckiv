@@ -22,6 +22,7 @@ app.use((req, res, next) => {
   next();
 });
 // Original files are served only through authenticated or token-validated routes.
+app.use('/api/admin', require('./routes/admin'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/documents', require('./routes/documents'));
 app.use('/api/shared', require('./routes/shared'));

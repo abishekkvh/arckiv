@@ -1,3 +1,4 @@
+import EmailAuthForm from '../components/EmailAuthForm';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -41,8 +42,8 @@ export default function Login() {
 
   const capabilities = [
     { icon: Sparkle, title: 'Multimodal Gemini OCR', desc: 'Automatic key-field extraction & structured summaries' },
-    { icon: MagnifyingGlass, title: 'Atlas Vector Search', desc: '3072-dimensional cosine similarity semantic recall' },
-    { icon: ClockCounterClockwise, title: 'Transactional Audit Trail', desc: 'Immutable append-only provenance logging' },
+    { icon: MagnifyingGlass, title: 'Document Search', desc: 'Find files by name, tags and extracted text' },
+    { icon: ClockCounterClockwise, title: 'Transactional Audit Trail', desc: 'Document activity and version history' },
     { icon: ShareNetwork, title: 'Time-Limited Secure Sharing', desc: 'Cryptographic token hashes & dynamic QR codes' }
   ];
 
@@ -83,7 +84,7 @@ export default function Login() {
               </span>
             </h1>
             <p className="text-sm sm:text-base text-gray-600 font-medium max-w-lg mx-auto lg:mx-0 leading-relaxed">
-              Unified workspace engineered for multimodal AI extraction, vector semantic retrieval, provenance audit tracking, and cryptographic sharing.
+              Unified workspace engineered for multimodal AI extraction, document search, provenance audit tracking, and cryptographic sharing.
             </p>
           </div>
 
@@ -123,7 +124,7 @@ export default function Login() {
                 <LockKey size={24} weight="bold" />
               </div>
               <h2 className="text-xl font-bold text-gray-950 tracking-tight">Sign In to Arckiv</h2>
-              <p className="text-xs text-gray-500 font-medium">Authenticate via secure institutional Google SSO</p>
+              <p className="text-xs text-gray-500 font-medium">Use your email and password or continue with Google</p>
             </div>
 
             {error && (
@@ -135,6 +136,8 @@ export default function Login() {
               </motion.div>
             )}
 
+            <EmailAuthForm />
+            <p className="text-center text-xs text-gray-500">or</p>
             {/* Google Authentication Button */}
             <div className="space-y-3 pt-2">
               <button 
@@ -160,7 +163,7 @@ export default function Login() {
             {/* Security Footer Note */}
             <div className="pt-4 border-t border-gray-100 flex items-center justify-center gap-2 text-[11px] text-gray-400 font-medium">
               <ShieldCheck size={14} className="text-emerald-500 shrink-0" weight="fill" />
-              <span>Protected by Firebase Auth & SHA-256 tokens</span>
+              <span>Secured by Firebase Authentication</span>
             </div>
           </div>
         </motion.div>

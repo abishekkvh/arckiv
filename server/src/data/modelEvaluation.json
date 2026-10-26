@@ -1,0 +1,95 @@
+{
+  "modelId": "arckiv-v2-logistic_regression-f0f7e2d35969",
+  "threshold": 0.45,
+  "labels": [
+    "Certificate",
+    "Invoice",
+    "Receipt",
+    "Report"
+  ],
+  "test": {
+    "accuracy": 1.0,
+    "macro_precision": 1.0,
+    "macro_recall": 1.0,
+    "macro_f1": 1.0,
+    "classification_report": {
+      "Certificate": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 17.0
+      },
+      "Invoice": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 16.0
+      },
+      "Receipt": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 16.0
+      },
+      "Report": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 17.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 66.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 66.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        17,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        16,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        16,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        17
+      ]
+    ],
+    "prediction_seconds": 0.013532416021917015,
+    "prediction_ms_per_document": 0.20503660639268206,
+    "rows": 66
+  },
+  "audit": {
+    "total_documents": 65,
+    "supported_documents": 55,
+    "raw_top1_accuracy": 0.9818,
+    "accepted_by_ml_count": 42,
+    "accepted_by_ml_rate": 0.7636,
+    "accepted_accuracy": 1.0,
+    "fallback_rate": 0.2364,
+    "out_of_domain_safe_fallback_rate": 1.0
+  },
+  "provenance": "Saved V2 evaluation and audit reports; not a new independent production evaluation."
+}

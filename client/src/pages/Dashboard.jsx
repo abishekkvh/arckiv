@@ -196,7 +196,7 @@ export default function Dashboard() {
   };
 
   const categories = statsData?.categories || [];
-  const fileTypes = statsData?.fileTypes || [];
+  const fileTypes = ['PDF', 'Image', 'DOCX', 'Other'].map(type => (statsData?.fileTypes || []).find(item => item.type === type) || { type, count: 0, sizeMB: '0.00' });
   const topTags = statsData?.tags || [];
   const recentActivity = statsData?.recentActivity || [];
   const expiringDocuments = statsData?.expiringDocuments || [];
@@ -425,7 +425,7 @@ export default function Dashboard() {
             <div className="glass-card p-6 rounded-3xl space-y-4">
               <div className="flex items-center gap-2.5">
                 <FilePdf size={20} weight="bold" className="text-red-500" />
-                <h3 className="text-sm font-bold text-gray-950">Format Breakdown</h3>
+                <h3 className="text-sm font-bold text-gray-950">Files by format</h3>
               </div>
 
               {fileTypes.length === 0 ? (
@@ -436,7 +436,7 @@ export default function Dashboard() {
                     const pct = overview.totalDocuments > 0 ? Math.round((f.count / overview.totalDocuments) * 100) : 0;
                     return (
                       <div key={f.type} className="p-3 bg-gray-50/80 rounded-2xl border border-gray-100 flex items-center justify-between text-xs">
-                        <span className="font-bold text-gray-900">{f.type}</span>
+                        <span className="font-bold text-gray-900">{f.type === 'Image' ? 'Photos / images' : f.type}</span>
                         <div className="flex items-center gap-2 text-gray-500 font-mono text-[11px]">
                           <span>{f.sizeMB} MB</span>
                           <span className="px-2 py-0.5 rounded-md bg-white font-bold text-gray-900 border border-gray-200">
