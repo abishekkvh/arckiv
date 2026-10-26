@@ -1,9 +1,17 @@
-import { useEffect, useId, useRef } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { apiUrl } from '../../lib/api';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 // Locally hosted official jQuery distribution (integrity checked in index.html).
 const $ = window.jQuery;
 
 export default function DocumentSummaryModal({doc,onClose}) {
+  const {currentUser}=useAuth();
+  const [review,setReview]=useState(''),[reviewBusy,setReviewBusy]=useState(false);
+  async function confirmCategory() {
+    setReviewBusy(true);setReview('');
+    try {const token=await currentUser.getIdToken();const r=await fetch(apiUrl(`/api/documents/${doc._id}/category-review`),{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({category:doc.category}),signal:AbortSignal.timeout(15000)});const data=await r.json();if(!r.ok)throw Error(data.error);setReview(data.message);}catch(e){setReview(e.message||'Unable to save review');}finally{setReviewBusy(false);}
+  }
   const dialog=useRef(null), tagsRoot=useRef(null), titleId=useId(), listId=useId();
   useEffect(()=>{const node=dialog.current;node.showModal();return ()=>node.close();},[]);
   useEffect(()=>{
@@ -19,6 +27,7 @@ export default function DocumentSummaryModal({doc,onClose}) {
   },[doc.tags]);
   return createPortal(<dialog ref={dialog} onCancel={onClose} onClick={e=>{if(e.target===dialog.current)onClose();}} aria-labelledby={titleId} className="m-auto w-[min(92vw,600px)] max-h-[85vh] overflow-auto rounded-3xl p-7 shadow-2xl backdrop:bg-black/50 feature-enter">
     <header className="flex justify-between items-start gap-4"><div><h2 id={titleId} className="text-xl font-bold">Document summary</h2><p className="text-sm text-gray-500 break-all">{doc.name}</p></div><button autoFocus onClick={onClose} aria-label="Close summary" className="rounded-lg p-2 hover:bg-gray-100">✕</button></header>
+    <section className="my-4"><h3 className="font-semibold">Category: {doc.category || 'Uncategorized'}</h3><p className="text-sm text-gray-500 my-2">Confirm if this category fits, or use Edit Details to correct it. Reviews are user feedback, not verified labels.</p><button disabled={reviewBusy || !doc.category} onClick={confirmCategory} className="admin-button">{reviewBusy?'Saving review…':'Confirm category'}</button>{review&&<p role="status" className="text-sm mt-2">{review}</p>}</section>
     <section className="my-6"><h3 className="font-semibold mb-2">Saved summary</h3><p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{doc.extractedData?.summary || 'No summary was saved for this document. Analysis may not have completed during upload.'}</p></section>
     <section ref={tagsRoot}><h3 className="font-semibold mb-2">Saved tags</h3><label className="text-sm">Find a tag<input type="search" className="form-field" list={listId} autoComplete="off" placeholder="Filter the saved tags" /></label><datalist id={listId}>{(doc.tags||[]).map(tag=><option key={tag} value={tag}/>)}</datalist>
       <ul className="flex flex-wrap gap-2 my-3">{(doc.tags||[]).map(tag=><li key={tag} data-summary-tag className="px-3 py-1 rounded-full border text-sm">{tag}</li>)}</ul><p role="status" className="text-xs text-gray-500" />

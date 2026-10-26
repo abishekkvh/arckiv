@@ -116,7 +116,6 @@ export default function Navigation() {
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'My Files', path: '/my-files' },
     { name: 'Upload', path: '/upload' },
-    { name: 'Guide', path: '/project-guide' },
     ...(dbUser?.isAdmin ? [{name: 'Admin', path: '/admin'}] : []),
   ];
 

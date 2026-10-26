@@ -1,0 +1,9 @@
+import {useState} from 'react';
+import {useAdminData, pct, date} from './adminData';
+import {LoadState, Cards, Bars, Pager, Empty} from './AdminUI';
+export default function PredictionQuality({user,revision}){
+ const [page,setPage]=useState(1);const state=useAdminData(`/api/admin/quality?page=${page}`,user,revision),d=state.data;
+ return <div className="space-y-5"><h2 className="text-2xl font-bold">Prediction Quality</h2><LoadState state={state}/>{d&&<><p className="text-sm text-gray-500">{d.notice}</p><Cards items={[
+ ['Reviewed documents',d.totals.reviewed],['Comparable predictions',d.totals.comparable],['Corrected predictions',d.totals.corrected],['Prediction agreement',pct(d.totals.agreementRate),'Latest reviewed category equals original ML prediction'],['Verified production accuracy','Unavailable','No verified ground-truth labeling workflow exists']
+ ]}/><div className="admin-chart-grid"><Bars title="Most frequent category corrections" items={d.categories.map(c=>({label:`${c._id.from} → ${c._id.to}`,value:c.count}))}/><Bars title="Category correction trends" items={d.trends.map(c=>({label:`${c._id.month} · ${c._id.category}`,value:c.count}))}/></div><section className="admin-panel"><div className="overflow-x-auto"><table className="admin-table"><thead><tr>{['Reviewed','Document ID','User','Original prediction','Reviewed category','Model','Feedback'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{d.items.map(r=><tr key={r._id}><td>{date(r.createdAt)}</td><td>{r.documentId}</td><td>{r.user?.email||'Unavailable'}</td><td>{r.originalPrediction||'Not recorded'}</td><td>{r.reviewedCategory}</td><td>{r.modelId||'Not recorded'}</td><td>{r.kind} (unverified)</td></tr>)}</tbody></table></div>{!d.items.length&&<Empty>No category reviews recorded. Owners can confirm the current category in Summary, or correct it using Edit Details.</Empty>}<Pager page={page} pages={d.pages} onPage={setPage}/></section></>}</div>;
+}

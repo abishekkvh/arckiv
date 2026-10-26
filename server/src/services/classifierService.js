@@ -1,7 +1,7 @@
 const ALLOWED_CATEGORIES = new Set(['Invoice', 'Receipt', 'Certificate', 'Report']);
 
 // Optional local Python inference. Failures must never block a document upload.
-async function classifyDocument(text, { fetchImpl = fetch, env = process.env } = {}) {
+async function decideClassification(text, { fetchImpl = fetch, env = process.env, capture = () => {} } = {}) {
   const fallback = { source: 'gemini', status: 'disabled' };
   if (!env.CLASSIFIER_URL) return fallback;
   if (typeof text !== 'string' || !text.trim()) {
@@ -16,6 +16,7 @@ async function classifyDocument(text, { fetchImpl = fetch, env = process.env } =
     });
     if (!response.ok) throw new Error('Classifier unavailable');
     const result = await response.json();
+    capture(result);
     if (typeof result.demo !== 'boolean' || typeof result.model_id !== 'string') {
       throw new Error('Invalid classifier metadata');
     }
@@ -68,6 +69,7 @@ async function classifyDocument(text, { fetchImpl = fetch, env = process.env } =
       status: 'predicted',
       category: result.category,
       confidence: typeof result.confidence === 'number' ? result.confidence : null,
+      threshold: minConfidence,
       modelId: result.model_id,
       demo: result.demo,
     };
@@ -76,4 +78,31 @@ async function classifyDocument(text, { fetchImpl = fetch, env = process.env } =
   }
 }
 
-module.exports = { classifyDocument, ALLOWED_CATEGORIES };
+const DECISION_REASONS = {
+  predicted: 'The supported prediction met the configured confidence threshold.',
+  low_confidence: 'The prediction was below the confidence threshold; Gemini category is retained when available.',
+  disabled: 'The ML inference service is not configured.', no_text: 'No extracted text was available for ML inference.',
+  no_known_terms: 'No document terms matched the model vocabulary.', model_mismatch: 'The returned model did not match the required production model.',
+  experimental_model_rejected: 'An experimental model cannot classify production documents.', demo_model_rejected: 'Demo model predictions are disabled.',
+  unsupported_category: 'The prediction was outside the production category set.', invalid_confidence: 'The score or threshold was missing or invalid.',
+  unavailable: 'The model request failed, timed out, or returned an invalid response.'
+};
+async function classifyDocument(text, options = {}) {
+  const started = Date.now(); let raw = {};
+  const decision = await decideClassification(text, { ...options, capture: result => { raw = result || {}; } });
+  const string = value => typeof value === 'string' ? value.slice(0, 150) : null;
+  const finite = value => typeof value === 'number' && Number.isFinite(value) ? value : null;
+  const scoreType = ['probability', 'decision_margin'].includes(raw.score_type) ? raw.score_type : null;
+  const scores = scoreType && raw.scores && typeof raw.scores === 'object' && !Array.isArray(raw.scores)
+    ? Object.entries(raw.scores).slice(0, 50).filter(([label,value]) => label.length <= 100 && finite(value) !== null && (scoreType !== 'probability' || (value >= 0 && value <= 1))).map(([category,score]) => ({ category, score })) : [];
+  const env = options.env || process.env;
+  const configured = env.CLASSIFIER_MIN_CONFIDENCE !== undefined ? Number(env.CLASSIFIER_MIN_CONFIDENCE) : raw.confidence_threshold;
+  const threshold = decision.threshold ?? (finite(configured) !== null && configured >= 0 && configured <= 1 ? configured : null);
+  return { ...decision, modelId: string(raw.model_id), algorithm: string(raw.algorithm), estimatorClass: string(raw.estimator_class),
+    pipelineVersion: string(raw.preprocessing_version), predictionCategory: string(raw.category),
+    confidence: decision.confidence ?? (finite(raw.confidence) !== null && raw.confidence >= 0 && raw.confidence <= 1 ? raw.confidence : null),
+    threshold, scores, scoreType, confidenceMethod: string(raw.confidence_method), accepted: decision.source === 'ml', durationMs: Date.now() - started,
+    reason: DECISION_REASONS[decision.status] || 'No decision reason recorded.',
+  };
+}
+module.exports = { classifyDocument, ALLOWED_CATEGORIES, DECISION_REASONS };

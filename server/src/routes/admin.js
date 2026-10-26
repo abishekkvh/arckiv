@@ -20,4 +20,12 @@ router.get('/overview', async (req,res,next) => {
   res.json({totalUsers,totalDocuments,users,page,pages:Math.max(1,Math.ceil(totalUsers/20)),classifications,model,evaluation});
  } catch(e) {next(e);}
 });
+const monitoring = require('../services/adminMonitoring');
+for (const [path, handler] of [
+  ['/inferences', req => monitoring.decisions(req.query)],
+  ['/inferences/:id', req => monitoring.decision(req.params.id)],
+  ['/analytics', () => monitoring.analytics()],
+  ['/quality', req => monitoring.quality(req.query)],
+  ['/registry', async () => ({...monitoring.registry,health:await monitoring.modelHealth()})],
+]) router.get(path, async(req,res,next)=>{try{res.json(await handler(req));}catch(e){next(e);}});
 module.exports=router;

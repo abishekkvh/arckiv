@@ -131,3 +131,24 @@
 .study-hidden { display: none !important; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 @media print { nav, button { display: none !important; } main { color: black; background: white; } }
+
+/* Admin monitoring uses native progress elements; no chart runtime dependency. */
+.admin-panel { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem; min-width: 0; }
+.admin-button { border: 1px solid #cbd5e1; border-radius: .65rem; padding: .55rem .85rem; background: white; font-size: .8rem; transition: background .15s; }
+.admin-button:hover, .admin-selected { background: #eff6ff; border-color: #2563eb; color: #1d4ed8; }
+.admin-button:disabled { opacity: .45; cursor: not-allowed; }
+.admin-button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.admin-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+.admin-chart-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+.admin-chart-grid > section { max-height: 28rem; overflow:auto; }
+.admin-progress { display:block; width:100%; height:.5rem; accent-color:#2563eb; margin-top:.3rem; }
+.admin-table { width:100%; border-collapse:collapse; font-size:.8rem; margin:1rem 0; text-align:left; }
+.admin-table th,.admin-table td { padding:.75rem; border-bottom:1px solid #e2e8f0; vertical-align:top; max-width:22rem; overflow-wrap:anywhere; }
+.admin-table th { font-weight:600; color:#475569; }
+.admin-table caption { text-align:left; font-size:.8rem; padding:.5rem; color:#64748b; }
+.admin-filters { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; font-size:.8rem; }
+.admin-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; font-size:.85rem; }
+.admin-details dt { color:#64748b; } .admin-details dd { overflow-wrap:anywhere; margin-top:.25rem; }
+.admin-inspector { margin:auto; width:min(900px,94vw); max-height:90vh; overflow:auto; padding:1.5rem; border:0; border-radius:1rem; box-shadow:0 15px 60px #0003; }
+.admin-inspector::backdrop { background:#0f172a99; }
+@media(max-width:700px) { .admin-chart-grid,.admin-details { grid-template-columns:1fr; } .admin-panel {padding:1rem;} }

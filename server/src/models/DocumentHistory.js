@@ -22,7 +22,7 @@ const documentHistorySchema = new mongoose.Schema({
   action: {
     type: String,
     // REUPLOAD and RESTORE removed — confirmed 0 records used these values
-    enum: ['UPLOAD', 'EDIT', 'SHARE', 'UNSHARE', 'DELETE'],
+    enum: ['UPLOAD', 'EDIT', 'SHARE', 'UNSHARE', 'DELETE', 'CATEGORY_REVIEW'],
     required: true,
   },
   metadata: {
@@ -38,4 +38,6 @@ documentHistorySchema.index({ documentId: 1, createdAt: -1 });
 // Index for dashboard recent activity: all events by user ordered by time
 documentHistorySchema.index({ userId: 1, createdAt: -1 });
 
+documentHistorySchema.index({ action: 1, createdAt: -1 });
+documentHistorySchema.index({ 'metadata.categoryReview.kind': 1, createdAt: -1 }, { sparse: true });
 module.exports = mongoose.model('DocumentHistory', documentHistorySchema);

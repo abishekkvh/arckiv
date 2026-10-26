@@ -1,0 +1,578 @@
+{
+  "configuredModelId": "arckiv-v2-logistic_regression-f0f7e2d35969",
+  "artifactSha256": "49db9c6d64bead6ced4264e5150790b48eb46c7de18393132179f8918035b8bf",
+  "models": [
+    {
+      "modelId": "arckiv-v2-logistic_regression-f0f7e2d35969",
+      "algorithm": "logistic_regression",
+      "labels": [
+        "Certificate",
+        "Invoice",
+        "Receipt",
+        "Report"
+      ],
+      "threshold": 0.45,
+      "configuredProduction": true,
+      "experimental": false,
+      "demo": false,
+      "evaluationVersion": "34ef829e5544d6dbd137f569c14fb59c41f30a238fc0ac58150071bbf7759571",
+      "evaluationDate": null,
+      "artifacts": [
+        {
+          "path": "ml/artifacts/evaluation.json",
+          "sha256": "34ef829e5544d6dbd137f569c14fb59c41f30a238fc0ac58150071bbf7759571"
+        }
+      ],
+      "dataset": {
+        "sha256": "5fdaade75ef9b5122298489d345d5378c7006a388fdf9935fcf149413494045e",
+        "splitRows": {
+          "train": 194,
+          "validation": 65,
+          "test": 66
+        },
+        "scope": "Arckiv genuine production four-category classifier v2 (Invoice, Receipt, Certificate, Report)."
+      },
+      "featureExtraction": {
+        "method": "TF-IDF",
+        "configuration": {
+          "ngram_range": [
+            1,
+            2
+          ],
+          "sublinear_tf": true,
+          "max_features": 30000,
+          "stop_words": "english"
+        },
+        "vocabularySize": 30000,
+        "preprocessingVersion": "doclaynet-text-v1"
+      },
+      "selectionMetric": "validation macro_f1 + calibrated probability threshold",
+      "metrics": [
+        {
+          "algorithm": "logistic_regression",
+          "split": "validation",
+          "accuracy": 1.0,
+          "macro_precision": 1.0,
+          "macro_recall": 1.0,
+          "macro_f1": 1.0,
+          "rows": 65,
+          "confusion_matrix": [
+            [
+              17,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              16,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              16,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              16
+            ]
+          ],
+          "training_seconds": 0.10930808301782236,
+          "prediction_ms_per_document": 0.2073865383863449
+        },
+        {
+          "algorithm": "linear_svm",
+          "split": "validation",
+          "accuracy": 1.0,
+          "macro_precision": 1.0,
+          "macro_recall": 1.0,
+          "macro_f1": 1.0,
+          "rows": 65,
+          "confusion_matrix": [
+            [
+              17,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              16,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              16,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              16
+            ]
+          ],
+          "training_seconds": 0.053187666984740645,
+          "prediction_ms_per_document": 0.19898781499180657
+        },
+        {
+          "algorithm": "logistic_regression",
+          "split": "test",
+          "accuracy": 1.0,
+          "macro_precision": 1.0,
+          "macro_recall": 1.0,
+          "macro_f1": 1.0,
+          "rows": 66,
+          "confusion_matrix": [
+            [
+              17,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              16,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              16,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              17
+            ]
+          ],
+          "prediction_ms_per_document": 0.20503660639268206
+        }
+      ],
+      "calibration": {
+        "brier_score": 0.266002,
+        "ece": 0.4259,
+        "mce": 0.6476
+      }
+    },
+    {
+      "modelId": "arckiv-prod-logistic_regression-0767989c266b",
+      "algorithm": "logistic_regression",
+      "labels": [
+        "Certificate",
+        "Invoice",
+        "Receipt",
+        "Report"
+      ],
+      "threshold": 0.65,
+      "configuredProduction": false,
+      "experimental": false,
+      "demo": false,
+      "evaluationVersion": "07f7b8c5b83f79a1ff823e191862c659bd0e5b713d4b3940d96818b08d548c2a",
+      "evaluationDate": null,
+      "artifacts": [
+        {
+          "path": "ml/artifacts/production-v1/evaluation.json",
+          "sha256": "07f7b8c5b83f79a1ff823e191862c659bd0e5b713d4b3940d96818b08d548c2a"
+        }
+      ],
+      "dataset": {
+        "sha256": "b429f7e6a4d409b5894f86ddf9bcd6a3a5c423fb6b0837b376d2b6ad60b046d1",
+        "splitRows": {
+          "train": 205,
+          "validation": 69,
+          "test": 69
+        },
+        "scope": "Arckiv genuine production four-category classifier (Invoice, Receipt, Certificate, Report)."
+      },
+      "featureExtraction": {
+        "method": "TF-IDF",
+        "configuration": {
+          "ngram_range": [
+            1,
+            2
+          ],
+          "sublinear_tf": true,
+          "max_features": 30000,
+          "stop_words": "english"
+        },
+        "vocabularySize": 30000,
+        "preprocessingVersion": "doclaynet-text-v1"
+      },
+      "selectionMetric": "validation macro_f1",
+      "metrics": [
+        {
+          "algorithm": "logistic_regression",
+          "split": "validation",
+          "accuracy": 1.0,
+          "macro_precision": 1.0,
+          "macro_recall": 1.0,
+          "macro_f1": 1.0,
+          "rows": 69,
+          "confusion_matrix": [
+            [
+              20,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              15,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              17,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              17
+            ]
+          ],
+          "training_seconds": 1.0861793750082143,
+          "prediction_ms_per_document": 3.800337565590398
+        },
+        {
+          "algorithm": "linear_svm",
+          "split": "validation",
+          "accuracy": 1.0,
+          "macro_precision": 1.0,
+          "macro_recall": 1.0,
+          "macro_f1": 1.0,
+          "rows": 69,
+          "confusion_matrix": [
+            [
+              20,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              15,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              17,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              17
+            ]
+          ],
+          "training_seconds": 1.0504627500195056,
+          "prediction_ms_per_document": 3.8136207680825307
+        },
+        {
+          "algorithm": "logistic_regression",
+          "split": "test",
+          "accuracy": 1.0,
+          "macro_precision": 1.0,
+          "macro_recall": 1.0,
+          "macro_f1": 1.0,
+          "rows": 69,
+          "confusion_matrix": [
+            [
+              20,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              15,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              17,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              17
+            ]
+          ],
+          "prediction_ms_per_document": 3.8683834490771205
+        }
+      ],
+      "calibration": {
+        "brier_score": null,
+        "ece": null,
+        "mce": null
+      }
+    },
+    {
+      "modelId": "doclaynet-linear_svm-bfddfa88b43b",
+      "algorithm": "linear_svm",
+      "labels": [
+        "Financial Report",
+        "Government Tender",
+        "Law / Regulation",
+        "Manual",
+        "Patent",
+        "Scientific Article"
+      ],
+      "threshold": null,
+      "configuredProduction": false,
+      "experimental": true,
+      "demo": false,
+      "evaluationVersion": "16f6134e19f8a29a798310e802f33ae1b19812a501ace7aaf00f0dfebff2e8df",
+      "evaluationDate": null,
+      "artifacts": [
+        {
+          "path": "ml/artifacts/doclaynet-v1/evaluation.json",
+          "sha256": "16f6134e19f8a29a798310e802f33ae1b19812a501ace7aaf00f0dfebff2e8df"
+        }
+      ],
+      "dataset": {
+        "sha256": "adc9c1b49d05d780542965acc3db4eeea3bf418b006b5488ed52757d250aa6e3",
+        "splitRows": {
+          "train": 958,
+          "validation": 319,
+          "test": 320
+        },
+        "scope": "DocLayNet six-category experiment; never deploy as the default Arckiv upload classifier."
+      },
+      "featureExtraction": {
+        "method": "TF-IDF",
+        "configuration": {
+          "ngram_range": [
+            1,
+            2
+          ],
+          "sublinear_tf": true,
+          "max_features": 30000
+        },
+        "vocabularySize": 30000,
+        "preprocessingVersion": "doclaynet-text-v1"
+      },
+      "selectionMetric": "validation macro_f1",
+      "metrics": [
+        {
+          "algorithm": "logistic_regression",
+          "split": "validation",
+          "accuracy": 0.9717868338557993,
+          "macro_precision": 0.9577791231992053,
+          "macro_recall": 0.975,
+          "macro_f1": 0.9631121877730896,
+          "rows": 319,
+          "confusion_matrix": [
+            [
+              60,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              54,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              51,
+              7,
+              0,
+              1
+            ],
+            [
+              0,
+              0,
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              60,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              60
+            ]
+          ],
+          "training_seconds": 11.065172083000107,
+          "prediction_ms_per_document": 7.435377087773264
+        },
+        {
+          "algorithm": "linear_svm",
+          "split": "validation",
+          "accuracy": 0.9937304075235109,
+          "macro_precision": 0.9908575031525851,
+          "macro_recall": 0.9944444444444445,
+          "macro_f1": 0.9925297569184092,
+          "rows": 319,
+          "confusion_matrix": [
+            [
+              60,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              54,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              58,
+              1,
+              0,
+              1
+            ],
+            [
+              0,
+              0,
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              60,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              60
+            ]
+          ],
+          "training_seconds": 10.319348082999568,
+          "prediction_ms_per_document": 7.355636100314156
+        },
+        {
+          "algorithm": "linear_svm",
+          "split": "test",
+          "accuracy": 0.9875,
+          "macro_precision": 0.9885057471264368,
+          "macro_recall": 0.9888888888888889,
+          "macro_f1": 0.9883735545500252,
+          "rows": 320,
+          "confusion_matrix": [
+            [
+              57,
+              3,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              54,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              59,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              26,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              60,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              60
+            ]
+          ],
+          "prediction_ms_per_document": 7.22661692812494
+        }
+      ],
+      "calibration": {
+        "brier_score": null,
+        "ece": null,
+        "mce": null
+      }
+    }
+  ],
+  "selectionEvidence": {
+    "source": "ml/train_v2.py:259-260",
+    "explanation": "V2 explicitly retains Logistic Regression as the primary model with predict_proba. Logistic Regression and Linear SVM tie on the recorded V2 validation metrics. Native probability outputs support the confidence gate; the code does not run both models or select a winner per upload. Recorded calibration error is not a guarantee of calibrated production probabilities."
+  },
+  "limitations": [
+    "Offline metrics are report results, not production accuracy.",
+    "Evaluation dates are unavailable unless explicitly recorded.",
+    "Different report versions use different datasets and are not directly comparable.",
+    "Linear SVM is a validation benchmark, not a separately deployed V2 model."
+  ]
+}

@@ -52,20 +52,31 @@ def create_app(model_path=None):
         if pipeline[:-1].transform([request.text]).nnz == 0:
             return {"category": None, "confidence": 0.0, "reason": "no_known_terms", **bundle["metadata"]}
         
-        # Calculate prediction and calibrated confidence
+        category_scores = {}
+        score_type = None
+        confidence_method = None
+        # Preserve existing decision behavior; expose the actual underlying scores.
         if hasattr(pipeline, "predict_proba"):
             probs = pipeline.predict_proba([request.text])[0]
             classes = list(pipeline.classes_)
+            category_scores = {str(label): float(value) for label, value in zip(classes, probs)}
+            score_type = "probability"
+            confidence_method = "predict_proba"
             best_idx = int(np.argmax(probs))
             category = str(classes[best_idx])
             confidence = float(probs[best_idx])
         elif hasattr(pipeline, "decision_function"):
             scores = np.asarray(pipeline.decision_function([request.text])[0])
+            score_type = "decision_margin"
             if scores.ndim == 0:
+                category_scores = {str(pipeline.classes_[1]): float(scores)}
+                confidence_method = "sigmoid_decision_margin"
                 prob = 1.0 / (1.0 + np.exp(-scores))
                 confidence = float(max(prob, 1.0 - prob))
                 category = str(pipeline.classes_[int(scores > 0)])
             else:
+                category_scores = {str(label): float(value) for label, value in zip(pipeline.classes_, scores)}
+                confidence_method = "softmax_decision_margin"
                 exp_scores = np.exp(scores - np.max(scores))
                 probs = exp_scores / np.sum(exp_scores)
                 best_idx = int(np.argmax(probs))
@@ -73,12 +84,16 @@ def create_app(model_path=None):
                 confidence = float(probs[best_idx])
         else:
             category = str(pipeline.predict([request.text])[0])
-            confidence = 1.0
+            confidence = None  # No score API: do not invent certainty.
 
         return {
             "category": category,
-            "confidence": round(confidence, 4),
-            **bundle["metadata"]
+            "confidence": round(confidence, 4) if confidence is not None else None,
+            **bundle["metadata"],
+            "scores": category_scores,
+            "score_type": score_type,
+            "confidence_method": confidence_method,
+            "estimator_class": type(pipeline.steps[-1][1]).__name__,
         }
 
     return app

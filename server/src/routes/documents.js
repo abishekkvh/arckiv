@@ -1,3 +1,4 @@
+const { makeInferenceRecord, persistMonitoring } = require('../services/inferenceMonitoring');
 const aiLimit = require('../middleware/aiLimit');
 const express = require('express');
 const router = express.Router();
@@ -75,6 +76,14 @@ router.post('/upload', requireAuth, resolveDbUser, aiLimit, upload.single('docum
   let storedFile;
   let saved = false;
   let documentId;
+  const uploadedAt = new Date();
+  const timeline = [], monitoringErrors = [];
+  let monitoringClassification = {}, monitoringAiSuccess = false, monitoringCategory = null, monitoringText = false, monitoringWritten = false;
+  const recordMonitoring = async (failed = false) => {
+    if (!documentId || !req.file || monitoringWritten) return;
+    monitoringWritten = true;
+    await persistMonitoring(makeInferenceRecord({ documentId, userId: req.dbUser._id, file: req.file, uploadedAt, classification: monitoringClassification, aiSuccess: monitoringAiSuccess, finalCategory: monitoringCategory, extractedTextAvailable: monitoringText, timeline, errors: monitoringErrors, failed }));
+  };
   try {
     const file = req.file;
     const dbUserId = req.dbUser._id; // MongoDB ObjectId
@@ -104,16 +113,20 @@ router.post('/upload', requireAuth, resolveDbUser, aiLimit, upload.single('docum
     // 1. AI Analysis (optional — failure must NOT break upload)
     let aiResult = { summary: '', tags: [], category: 'Uncategorized', fullText: '', keyFields: {} };
     let aiSuccess = false;
+    const geminiStarted = new Date();
     try {
       aiResult = await analyzeDocument(absoluteFilePath, file.mimetype);
       aiSuccess = true;
       console.log('[AI ANALYSIS SUCCESS]', { category: aiResult.category, tagsCount: aiResult.tags?.length });
     } catch (aiError) {
+      monitoringErrors.push({ stage: 'gemini', code: aiError.status === 429 ? 'quota_exceeded' : 'analysis_failed' });
       console.log('[AI ANALYSIS FAILED]', aiError.message?.substring(0, 200));
     }
 
+    timeline.push({ stage: 'gemini', startedAt: geminiStarted, completedAt: new Date(), durationMs: Date.now()-geminiStarted.getTime(), status: aiSuccess ? 'completed' : 'failed' });
     let extractedText = aiResult.fullText;
     if (!extractedText && file.mimetype === 'application/pdf') {
+      const extractionStarted = new Date();
       try {
         const localExtracted = await extractPdfText(absoluteFilePath);
         if (localExtracted?.text) {
@@ -122,12 +135,19 @@ router.post('/upload', requireAuth, resolveDbUser, aiLimit, upload.single('docum
         }
       } catch (err) {
         console.warn('[LOCAL PDF EXTRACTION FAILED]', err.message);
+      } finally {
+        timeline.push({stage:'local_extraction',startedAt:extractionStarted,completedAt:new Date(),durationMs:Date.now()-extractionStarted.getTime(),status:extractedText?.trim()?'completed':'unavailable'});
       }
     }
 
+    const inferenceStarted = new Date();
     const classification = await classifyDocument(extractedText);
+    timeline.push({stage:'ml',startedAt:inferenceStarted,completedAt:new Date(),durationMs:Date.now()-inferenceStarted.getTime(),status:classification.status});
     if (classification.source === 'ml') aiResult.category = classification.category;
     if (classification.source !== 'ml' && !aiSuccess) classification.source = 'default';
+    monitoringClassification = classification; monitoringAiSuccess = aiSuccess; monitoringCategory = aiResult.category; monitoringText = !!extractedText?.trim();
+    if (!monitoringText) monitoringErrors.push({stage:'extraction',code:'no_extracted_text'});
+    if (['unavailable','invalid_confidence','model_mismatch','experimental_model_rejected','demo_model_rejected','unsupported_category'].includes(classification.status)) monitoringErrors.push({stage:'ml',code:classification.status});
 
     // 2. Save Document + DocumentVersion + DocumentContent + History in one transaction (or safe sequence if standalone)
     let document, content, version;
@@ -188,6 +208,7 @@ router.post('/upload', requireAuth, resolveDbUser, aiLimit, upload.single('docum
     });
 
     saved = true;
+    await recordMonitoring();
     console.log('[UPLOAD SUCCESS]', { documentId: document._id });
 
     // 3. Send response immediately (same shape as before — frontend unchanged)
@@ -223,6 +244,8 @@ router.post('/upload', requireAuth, resolveDbUser, aiLimit, upload.single('docum
     }
 
   } catch (error) {
+    monitoringErrors.push({stage:'storage',code:'upload_failed'});
+    await recordMonitoring(true);
     console.error('[UPLOAD ERROR]', error.message);
     if (!saved && documentId) {
       await Promise.allSettled([Document.deleteOne({ _id: documentId }), DocumentVersion.deleteMany({ documentId }), DocumentContent.deleteMany({ documentId }), DocumentHistory.deleteMany({ documentId })]);
@@ -288,6 +311,7 @@ router.put('/:id', requireAuth, resolveDbUser, async (req, res) => {
 
     const content = await DocumentContent.findOne({ documentId: document._id });
 
+    const originalClassification = document.classification?.toObject?.() || { ...document.classification };
     const changes = {};
     let searchableFieldChanged = false;
 
@@ -299,7 +323,7 @@ router.put('/:id', requireAuth, resolveDbUser, async (req, res) => {
     if (category && document.category !== category) {
       changes.category = { from: document.category, to: category };
       document.category = category;
-      document.classification = { source: 'manual', status: 'user_corrected' };
+      document.classification = { ...originalClassification, source: 'manual', status: 'user_corrected' };
       searchableFieldChanged = true;
     }
     if (tags && JSON.stringify(document.tags) !== JSON.stringify(tags)) {
@@ -337,7 +361,7 @@ router.put('/:id', requireAuth, resolveDbUser, async (req, res) => {
         documentId: document._id,
         userId: dbUserId,
         action: 'EDIT',
-        metadata: { changes }
+        metadata: { changes, ...(changes.category ? { categoryReview: { predictedCategory: originalClassification.predictionCategory || originalClassification.category || null, modelId: originalClassification.modelId || null, from: changes.category.from, to: changes.category.to, verifiedGroundTruth: false, kind: 'correction' } } : {}) }
       }], opts);
     });
 
@@ -375,6 +399,20 @@ router.put('/:id', requireAuth, resolveDbUser, async (req, res) => {
     console.error('Document Update Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+});
+
+// Explicit owner review; confirmation is feedback, never verified ground truth.
+router.post('/:id/category-review', requireAuth, resolveDbUser, async (req, res, next) => {
+  try {
+    const doc = await Document.findOne({_id:req.params.id,userId:req.dbUser._id});
+    if (!doc) return res.status(404).json({error:'Document not found'});
+    if (req.body.category !== doc.category) return res.status(409).json({error:'The category changed. Refresh the document before confirming.'});
+    await DocumentHistory.create({documentId:doc._id,userId:req.dbUser._id,action:'CATEGORY_REVIEW',metadata:{categoryReview:{
+      predictedCategory:doc.classification?.category || null,modelId:doc.classification?.modelId || null,
+      from:doc.category,to:doc.category,kind:'confirmation',verifiedGroundTruth:false,
+    }}});
+    res.json({message:'Category review recorded. This is user feedback, not verified ground truth.'});
+  } catch(e) {next(e);}
 });
 
 // ─── PATCH /api/documents/:id/view ──────────────────────────────────────────
