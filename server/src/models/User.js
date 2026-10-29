@@ -25,12 +25,39 @@ const userSchema = new mongoose.Schema(
     storageUsed: {
       type: Number,
       default: 0, // in bytes
+    },
+    status: {
+      type: String,
+      enum: ['active', 'disabled'],
+      default: 'active',
+      index: true,
+    },
+    role: {
+      type: String,
+      enum: ['admin', 'user'],
+      default: 'user',
+      index: true,
+    },
+    disabledReason: {
+      type: String,
+      default: null,
+    },
+    disabledAt: {
+      type: Date,
+      default: null,
+    },
+    lastLoginAt: {
+      type: Date,
+      default: null,
+      index: true,
     }
   },
   {
     timestamps: true,
   }
 );
+
+userSchema.index({ createdAt: -1 });
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;

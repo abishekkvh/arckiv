@@ -44,6 +44,7 @@ const documentSchema = new mongoose.Schema({
     default: 'Uncategorized',
   },
   classification: {
+    requiresReview: {type:Boolean,default:false},
     source: { type: String, enum: ['ml', 'gemini', 'manual', 'default'] },
     status: String,
     category: String,

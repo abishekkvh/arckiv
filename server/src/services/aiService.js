@@ -1,14 +1,15 @@
 const { GoogleGenAI } = require('@google/genai');
 const fs = require('fs');
+const { analysisDiagnostic } = require('./analysisErrors');
 const { renderPdfPagesToImages, extractPdfText } = require('./pdfService');
 
 function validateAnalysis(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value) ||
       typeof value.summary !== 'string' || typeof value.fullText !== 'string' ||
-      typeof value.category !== 'string' || !Array.isArray(value.tags) ||
+      typeof value.category !== 'string' || !value.category.trim() || value.category.trim().toLowerCase() === 'uncategorized' || !Array.isArray(value.tags) ||
       !value.tags.every(tag => typeof tag === 'string') || !value.keyFields ||
       typeof value.keyFields !== 'object' || Array.isArray(value.keyFields)) {
-    throw new Error('Invalid AI response structure');
+    throw Object.assign(new Error('Invalid AI response structure'), {code:'invalid_analysis_structure'});
   }
   return { summary: value.summary.slice(0, 10000), fullText: value.fullText.slice(0, 200000),
     category: value.category.slice(0, 100), tags: value.tags.slice(0, 10).map(tag => tag.slice(0, 100)), keyFields: value.keyFields };
@@ -16,11 +17,12 @@ function validateAnalysis(value) {
 
 const analyzeDocument = async (filePath, fileType) => {
   if (!process.env.GEMINI_API_KEY) {
-    throw new Error('GEMINI_API_KEY is missing in the environment variables');
+    throw Object.assign(new Error('AI configuration unavailable'), {code:'missing_api_key'});
   }
 
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, httpOptions: { timeout: 20000, retryOptions: { attempts: 1 } } });
   
+  let extracted = {text:'', complete:false};
   try {
     // 1. Read the file from the local file system
     const fileBuffer = fs.readFileSync(filePath);
@@ -68,13 +70,13 @@ const analyzeDocument = async (filePath, fileType) => {
     }
 
     // Digital PDFs already contain text: do not make the model transcribe it again.
-    const extracted = mimeType === 'application/pdf' ? await extractPdfText(filePath) : { text: '', complete: false };
+    extracted = mimeType === 'application/pdf' ? await extractPdfText(filePath) : { text: '', complete: false };
     if (extracted.complete) {
       prompt += '\nThe PDF text has already been extracted. Return fullText as an empty string; the server will retain the extracted text. Analyze the attached PDF for summary, tags, category and key fields. Do not repeat or transcribe the document.';
     }
 
     // 4. Call Gemini
-    const result = await ai.models.generateContent({
+    const request = {
       model: 'gemini-2.5-flash',
       config: {
         // Bound upload latency, including retries, and require valid JSON OCR output.
@@ -97,23 +99,33 @@ const analyzeDocument = async (filePath, fileType) => {
           ],
         },
       ],
-    });
-
+    };
+    let result;
+    try { result = await ai.models.generateContent(request); }
+    catch (error) {
+      // One retry only for transient service/network errors, sharing the original deadline.
+      const diagnostic = analysisDiagnostic(error);
+      if (!['provider_unavailable','provider_network_error'].includes(diagnostic.code) || request.config.abortSignal.aborted) throw error;
+      result = await ai.models.generateContent(request);
+    }
+    const finishReason = result.candidates?.[0]?.finishReason;
+    if (result.promptFeedback?.blockReason || ['SAFETY','RECITATION','BLOCKLIST','PROHIBITED_CONTENT'].includes(finishReason)) throw Object.assign(new Error('Blocked analysis'), {code:'analysis_blocked'});
+    if (finishReason === 'MAX_TOKENS') throw Object.assign(new Error('Truncated analysis'), {code:'analysis_truncated'});
     const responseText = result.text;
+    if (typeof responseText !== 'string' || !responseText.trim()) throw Object.assign(new Error('Empty analysis'), {code:'empty_analysis_response'});
     const finish = value => validateAnalysis(extracted.complete ? { ...value, fullText: extracted.text } : value);
     
     // Parse the JSON response
-    try {
-      const parsed = JSON.parse(responseText.trim());
-      return finish(parsed);
-    } catch (e) {
-      const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-      return finish(JSON.parse(cleaned));
-    }
+    let parsed;
+    try { parsed = JSON.parse(responseText.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')); }
+    catch { throw Object.assign(new Error('Invalid analysis JSON'), {code:'invalid_analysis_json'}); }
+    return finish(parsed);
     
   } catch (error) {
-    console.error('Error analyzing document with Gemini:', error.message);
-    throw new Error('AI analysis did not complete. Your document was saved without AI metadata.');
+    const diagnostic = analysisDiagnostic(error);
+    console.error('[GEMINI_ANALYSIS_FAILED]', diagnostic);
+    // Internal recovery data only; never write this text into monitoring metadata.
+    throw Object.assign(new Error('AI analysis did not complete. Your document was saved without AI metadata.'), diagnostic, {localExtraction:extracted});
   }
 };
 
@@ -133,7 +145,7 @@ function selectChatText(text, question) {
 
 const chatWithDocument = async ({ filePath, mimeType, documentText, history, newMessage }) => {
   if (!process.env.GEMINI_API_KEY) {
-    throw new Error('GEMINI_API_KEY is missing in the environment variables');
+    throw Object.assign(new Error('AI configuration unavailable'), {code:'missing_api_key'});
   }
 
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, httpOptions: { timeout: 20000, retryOptions: { attempts: 1 } } });

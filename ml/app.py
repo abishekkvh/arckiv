@@ -88,7 +88,7 @@ def create_app(model_path=None):
 
         return {
             "category": category,
-            "confidence": round(confidence, 4) if confidence is not None else None,
+            "confidence": confidence,  # Preserve the exact probability for threshold decisions and logging.
             **bundle["metadata"],
             "scores": category_scores,
             "score_type": score_type,

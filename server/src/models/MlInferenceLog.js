@@ -7,6 +7,7 @@ const schema = new mongoose.Schema({
  confidenceMethod:String, modelId:String, expectedModelId:String, algorithm:String, estimatorClass:String, pipelineVersion:String, evaluationVersion:String,
  predictedCategory:String, finalCategory:String, confidence:{type:Number,min:0,max:1,default:null}, threshold:{type:Number,min:0,max:1,default:null},
  scores:[{_id:false,category:String,score:Number}],scoreType:{type:String,enum:['probability','decision_margin',null],default:null},
+ requiresReview:Boolean,inputMetadata:{source:String,characters:Number,sentCharacters:Number,complete:{type:Boolean,default:null}},
  accepted:Boolean, geminiAttempted:Boolean, geminiSucceeded:Boolean, geminiFallback:Boolean,
  finalSource:{type:String,enum:['ml','gemini','default','manual','other']}, decisionStatus:String, reason:String,
  status:{type:String,enum:['completed','degraded','failed'],required:true}, durationMs:Number, inferenceDurationMs:Number,

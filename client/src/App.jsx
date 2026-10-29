@@ -25,6 +25,13 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/shared/:token" element={<PublicSharedView />} />
             
+            {/* Dedicated full-viewport Admin V4 Command Center */}
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <Admin />
+              </ProtectedRoute>
+            } />
+
             <Route path="/" element={
               <ProtectedRoute>
                 <DashboardLayout />
@@ -34,7 +41,6 @@ function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="my-files" element={<MyFiles />} />
               <Route path="upload" element={<Upload />} />
-              <Route path="admin" element={<Admin />} />
               <Route path="project-guide" element={<ProjectGuide />} />
             </Route>
 

@@ -40,11 +40,18 @@ const countIf=condition=>({$sum:{$cond:[condition,1,0]}});
 const day={$dateToString:{format:'%Y-%m-%d',date:'$uploadedAt',timezone:'UTC'}};
 async function analytics() {
  const since=new Date(Date.now()-29*86400000);since.setUTCHours(0,0,0,0);
- const [totalUsers,totalDocuments,types,categories,uploads,all,charts,health]=await Promise.all([
- User.countDocuments(),Document.countDocuments(),
+ const todayStart=new Date();todayStart.setUTCHours(0,0,0,0);
+ const [totalUsers,activeUsers,disabledUsers,totalDocuments,storageStats,todayUploads,types,categories,uploads,userGrowth,all,charts,recentHistory,health]=await Promise.all([
+ User.countDocuments(),
+ User.countDocuments({status:{$ne:'disabled'}}),
+ User.countDocuments({status:'disabled'}),
+ Document.countDocuments(),
+ Document.aggregate([{$group:{_id:null,bytes:{$sum:'$size'}}}]),
+ Document.countDocuments({createdAt:{$gte:todayStart}}),
  Document.aggregate([{$group:{_id:{$switch:{branches:[{case:{$eq:['$type','application/pdf']},then:'PDF'},{case:{$regexMatch:{input:'$type',regex:'^image/'}},then:'Image'},{case:{$eq:['$type','application/vnd.openxmlformats-officedocument.wordprocessingml.document']},then:'DOCX'}],default:'Other'}},count:{$sum:1}}}]),
  Document.aggregate([{$group:{_id:'$category',count:{$sum:1}}},{$sort:{count:-1}},{$limit:30}]),
  Document.aggregate([{$match:{createdAt:{$gte:since}}},{$group:{_id:{$dateToString:{format:'%Y-%m-%d',date:'$createdAt',timezone:'UTC'}},count:{$sum:1}}},{$sort:{_id:1}}]),
+ User.aggregate([{$match:{createdAt:{$gte:since}}},{$group:{_id:{$dateToString:{format:'%Y-%m-%d',date:'$createdAt',timezone:'UTC'}},count:{$sum:1}}},{$sort:{_id:1}}]),
  Log.aggregate([{$group:{
    _id:null, records:{$sum:1},
    mlAttempts:countIf({$not:[{$in:['$decisionStatus',['disabled','no_text','not_run']]}]}),
@@ -59,10 +66,20 @@ async function analytics() {
   sources:[{$group:{_id:'$finalSource',count:{$sum:1}}}],
   trends:[{$group:{_id:{day,model:'$modelId',category:'$predictedCategory'},count:{$sum:1}}},{$sort:{'_id.day':1}},{$limit:300}],
   failures:[{$match:{$or:[{status:{$ne:'completed'}},{'processingErrors.0':{$exists:true}}]}},{$group:{_id:day,count:{$sum:1}}},{$sort:{_id:1}}],
-  recent:[{$sort:{uploadedAt:-1,_id:-1}},{$limit:10},{$project:{filename:1,status:1,decisionStatus:1,finalSource:1,uploadedAt:1,durationMs:1,processingErrors:1}}]
- }}]).option({maxTimeMS:5000}),modelHealth()]);
+  recent:[{$sort:{uploadedAt:-1,_id:-1}},{$limit:12},...usersJoin,{$project:{documentId:1,filename:1,status:1,decisionStatus:1,finalSource:1,predictedCategory:1,finalCategory:1,confidence:1,uploadedAt:1,durationMs:1,processingErrors:1,user:1}}]
+ }}]).option({maxTimeMS:5000}),
+ History.aggregate([
+  {$sort:{createdAt:-1,_id:-1}},
+  {$limit:15},
+  ...usersJoin,
+  {$lookup:{from:'documents',localField:'documentId',foreignField:'_id',pipeline:[{$project:{name:1,category:1,type:1}}],as:'doc'}},
+  {$set:{doc:{$arrayElemAt:['$doc',0]}}},
+  {$project:{action:1,createdAt:1,metadata:1,user:1,doc:1}}
+ ]),
+ modelHealth()]);
  const totals=all[0]||{records:0,mlAttempts:0,accepted:0,fallbacks:0,failed:0,averageMs:null,averageInferenceMs:null,extractionFailures:0,mlFailures:0};
- return {totalUsers,totalDocuments,types,categories,uploads,totals:{...totals,acceptanceRate:totals.mlAttempts?totals.accepted/totals.mlAttempts:null,fallbackRate:totals.records?totals.fallbacks/totals.records:null},charts:charts[0],health,window:{from:since.toISOString(),days:30,timezone:'UTC'},coverage:'Only new monitored uploads have inference records; existing documents are not backfilled.',registeredUsersScope:'Arckiv accounts synced to MongoDB, not all Firebase project accounts.'};
+ const totalStorageBytes=(storageStats[0]?.bytes)||0;
+ return {totalUsers,activeUsers,disabledUsers,totalDocuments,totalStorageBytes,todayUploads,types,categories,uploads,userGrowth,totals:{...totals,acceptanceRate:totals.mlAttempts?totals.accepted/totals.mlAttempts:null,fallbackRate:totals.records?totals.fallbacks/totals.records:null},charts:charts[0],recentHistory,health,window:{from:since.toISOString(),days:30,timezone:'UTC'},coverage:'Only new monitored uploads have inference records; existing documents are not backfilled.',registeredUsersScope:'Arckiv accounts synced to MongoDB, not all Firebase project accounts.'};
 }
 function reviewPipeline() {return [{$match:{'metadata.categoryReview':{$exists:true}}},{$sort:{createdAt:-1,_id:-1}},{$group:{_id:'$documentId',review:{$first:'$$ROOT'}}},{$replaceRoot:{newRoot:'$review'}},{$set:{originalPrediction:'$metadata.categoryReview.predictedCategory',reviewedCategory:'$metadata.categoryReview.to',modelId:'$metadata.categoryReview.modelId',changed:{$ne:['$metadata.categoryReview.from','$metadata.categoryReview.to']}}}];}
 async function quality(q) {

@@ -41,6 +41,12 @@ const resolveDbUser = async (req, res, next) => {
         error: 'User not found in database. Please log out and log in again to sync your account.'
       });
     }
+    if (user.status === 'disabled') {
+      return res.status(403).json({
+        error: 'Your account has been disabled by an administrator. Please contact support.',
+        accountDisabled: true,
+      });
+    }
     req.dbUser = user; // { _id, firebaseUid, email, name, ... }
     next();
   } catch (error) {

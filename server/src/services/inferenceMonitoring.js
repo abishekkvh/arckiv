@@ -10,6 +10,7 @@ function makeInferenceRecord({documentId,userId,file,uploadedAt,classification={
   evaluationVersion:registry.models.find(m=>m.modelId===classification.modelId)?.evaluationVersion || null,
   predictedCategory:classification.predictionCategory ?? classification.category ?? null,finalCategory:finalCategory || null,
   confidenceMethod:classification.confidenceMethod || null,confidence:classification.confidence ?? null,threshold:classification.threshold ?? null,scores:classification.scores || [],scoreType:classification.scoreType || null,
+  requiresReview:classification.source==='default' || classification.requiresReview===true,inputMetadata:classification.inputMetadata,
   accepted:classification.source==='ml',geminiAttempted:timeline.some(t=>t.stage==='gemini'),geminiSucceeded:aiSuccess,
   geminiFallback:classification.source==='gemini' && aiSuccess,
   finalSource:validSources.has(classification.source)?classification.source:'other',decisionStatus:classification.status || 'not_run',

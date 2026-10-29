@@ -112,29 +112,37 @@ router.post('/upload', requireAuth, resolveDbUser, aiLimit, upload.single('docum
 
     // 1. AI Analysis (optional — failure must NOT break upload)
     let aiResult = { summary: '', tags: [], category: 'Uncategorized', fullText: '', keyFields: {} };
-    let aiSuccess = false;
+    let aiSuccess = false, recoveredExtraction = null;
     const geminiStarted = new Date();
     try {
       aiResult = await analyzeDocument(absoluteFilePath, file.mimetype);
       aiSuccess = true;
       console.log('[AI ANALYSIS SUCCESS]', { category: aiResult.category, tagsCount: aiResult.tags?.length });
     } catch (aiError) {
-      monitoringErrors.push({ stage: 'gemini', code: aiError.status === 429 ? 'quota_exceeded' : 'analysis_failed' });
-      console.log('[AI ANALYSIS FAILED]', aiError.message?.substring(0, 200));
+      const {analysisDiagnostic} = require('../services/analysisErrors');
+      const safe = analysisDiagnostic(aiError);
+      // Already sanitized provider-boundary codes are preserved via the same allowlist.
+      monitoringErrors.push({ stage: 'gemini', code: safe.code });
+      recoveredExtraction = aiError.localExtraction;
+      console.log('[AI ANALYSIS FAILED]', safe.code);
     }
 
     timeline.push({ stage: 'gemini', startedAt: geminiStarted, completedAt: new Date(), durationMs: Date.now()-geminiStarted.getTime(), status: aiSuccess ? 'completed' : 'failed' });
     let extractedText = aiResult.fullText;
-    if (!extractedText && file.mimetype === 'application/pdf') {
+    let textSource = extractedText?.trim() ? 'gemini_analysis' : 'none', extractionComplete = null;
+    if (!extractedText?.trim() && file.mimetype === 'application/pdf') {
       const extractionStarted = new Date();
       try {
-        const localExtracted = await extractPdfText(absoluteFilePath);
-        if (localExtracted?.text) {
+        const localExtracted = recoveredExtraction?.text?.trim() ? recoveredExtraction : await extractPdfText(absoluteFilePath);
+        extractionComplete = localExtracted?.complete === true;
+        if (localExtracted?.text?.trim()) {
+          textSource = 'local_pdf';
           extractedText = localExtracted.text;
-          if (!aiResult.fullText) aiResult.fullText = localExtracted.text;
+          aiResult.fullText = localExtracted.text;
         }
       } catch (err) {
-        console.warn('[LOCAL PDF EXTRACTION FAILED]', err.message);
+        console.warn('[LOCAL PDF EXTRACTION FAILED]');
+        monitoringErrors.push({stage:'extraction',code:'pdf_extraction_failed'});
       } finally {
         timeline.push({stage:'local_extraction',startedAt:extractionStarted,completedAt:new Date(),durationMs:Date.now()-extractionStarted.getTime(),status:extractedText?.trim()?'completed':'unavailable'});
       }
@@ -144,7 +152,12 @@ router.post('/upload', requireAuth, resolveDbUser, aiLimit, upload.single('docum
     const classification = await classifyDocument(extractedText);
     timeline.push({stage:'ml',startedAt:inferenceStarted,completedAt:new Date(),durationMs:Date.now()-inferenceStarted.getTime(),status:classification.status});
     if (classification.source === 'ml') aiResult.category = classification.category;
-    if (classification.source !== 'ml' && !aiSuccess) classification.source = 'default';
+    if (classification.source !== 'ml' && !aiSuccess) {
+      classification.source = 'default';
+      classification.requiresReview = true;
+      classification.reason += ' Gemini analysis was unavailable; no reliable category was selected. Manual review is required.';
+    }
+    classification.inputMetadata = {source:textSource,characters:extractedText?.trim()?.length || 0,sentCharacters:Math.min(extractedText?.length || 0,100000),complete:extractionComplete};
     monitoringClassification = classification; monitoringAiSuccess = aiSuccess; monitoringCategory = aiResult.category; monitoringText = !!extractedText?.trim();
     if (!monitoringText) monitoringErrors.push({stage:'extraction',code:'no_extracted_text'});
     if (['unavailable','invalid_confidence','model_mismatch','experimental_model_rejected','demo_model_rejected','unsupported_category'].includes(classification.status)) monitoringErrors.push({stage:'ml',code:classification.status});
@@ -323,7 +336,7 @@ router.put('/:id', requireAuth, resolveDbUser, async (req, res) => {
     if (category && document.category !== category) {
       changes.category = { from: document.category, to: category };
       document.category = category;
-      document.classification = { ...originalClassification, source: 'manual', status: 'user_corrected' };
+      document.classification = { ...originalClassification, source: 'manual', status: 'user_corrected', requiresReview:false };
       searchableFieldChanged = true;
     }
     if (tags && JSON.stringify(document.tags) !== JSON.stringify(tags)) {
