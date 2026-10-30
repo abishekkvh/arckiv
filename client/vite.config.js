@@ -8,6 +8,26 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/firebase')) {
+            return 'firebase';
+          }
+          if (id.includes('node_modules/framer-motion')) {
+            return 'motion';
+          }
+          if (id.includes('node_modules/react-router')) {
+            return 'router';
+          }
+          if (id.includes('node_modules/@phosphor-icons')) {
+            return 'phosphor';
+          }
+        },
+      },
+    },
+  },
   server: {
     proxy: { "/api": "http://127.0.0.1:5001", "/health": "http://127.0.0.1:5001" },
     headers: {

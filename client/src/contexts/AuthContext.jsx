@@ -15,11 +15,16 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [syncError, setSyncError] = useState('');
 
+  // Fire-and-forget keep-alive ping so Render wakes up ASAP
+  useEffect(() => {
+    fetch(apiUrl('/health'), { signal: AbortSignal.timeout(60000) }).catch(() => {});
+  }, []);
+
   // Sync Firebase user with our MongoDB Backend
   const syncWithBackend = async (firebaseUser) => {
     setSyncError('');
     try {
-      const token = await firebaseUser.getIdToken(true);
+      const token = await firebaseUser.getIdToken();
       
       const response = await fetch(apiUrl('/api/auth/sync'), {
         method: 'POST',

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export default function SpatialBackground({ density = 35, particleSize = 1.2, speed = 0.4 }) {
+export default function SpatialBackground({ density = 20, particleSize = 1.2, speed = 0.4 }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -17,6 +17,11 @@ export default function SpatialBackground({ density = 35, particleSize = 1.2, sp
     // Check reduced motion
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
+
+    // Skip on low-end or mobile devices to save CPU
+    const isLowEnd = (navigator.hardwareConcurrency ?? 4) < 4 || window.innerWidth < 768;
+    const effectiveDensity = isLowEnd ? Math.min(density, 10) : density;
+    const drawConnections = !isLowEnd;
 
     let mouse = { x: -1000, y: -1000, vx: 0, vy: 0, lastX: 0, lastY: 0 };
 
@@ -40,7 +45,7 @@ export default function SpatialBackground({ density = 35, particleSize = 1.2, sp
 
     // Create particles
     let particles = [];
-    const count = Math.min(Math.floor((width * height) / 25000), density);
+    const count = Math.min(Math.floor((width * height) / 25000), effectiveDensity);
 
     function initParticles() {
       particles = [];
@@ -86,8 +91,9 @@ export default function SpatialBackground({ density = 35, particleSize = 1.2, sp
         // Mouse proximity interaction
         const dx = mouse.x - p1.x;
         const dy = mouse.y - p1.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 120) {
+        const distSq = dx * dx + dy * dy;
+        if (distSq < 14400) { // 120^2
+          const dist = Math.sqrt(distSq);
           const angle = Math.atan2(dy, dx);
           p1.x -= Math.cos(angle) * 0.8;
           p1.y -= Math.sin(angle) * 0.8;
@@ -102,18 +108,23 @@ export default function SpatialBackground({ density = 35, particleSize = 1.2, sp
         ctx.fillStyle = p1.color + p1.alpha + ')';
         ctx.fill();
 
-        // Connect near neighbors
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const distNodes = Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
-          if (distNodes < 110) {
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            const lineAlpha = (1 - distNodes / 110) * 0.12;
-            ctx.strokeStyle = `rgba(37, 99, 235, ${lineAlpha})`;
-            ctx.lineWidth = 0.8;
-            ctx.stroke();
+        // Connect near neighbors only if enabled
+        if (drawConnections) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const p2 = particles[j];
+            const dxNodes = p1.x - p2.x;
+            const dyNodes = p1.y - p2.y;
+            const distSqNodes = dxNodes * dxNodes + dyNodes * dyNodes;
+            if (distSqNodes < 12100) { // 110^2
+              const distNodes = Math.sqrt(distSqNodes);
+              ctx.beginPath();
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+              const lineAlpha = (1 - distNodes / 110) * 0.12;
+              ctx.strokeStyle = `rgba(37, 99, 235, ${lineAlpha})`;
+              ctx.lineWidth = 0.8;
+              ctx.stroke();
+            }
           }
         }
       }

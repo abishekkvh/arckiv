@@ -50,7 +50,7 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] relative flex items-center justify-center p-4 sm:p-6 lg:p-12 overflow-hidden">
       {/* Dynamic Ambient Background */}
-      <SpatialBackground density={30} particleSize={1.4} />
+      <SpatialBackground density={18} particleSize={1.4} />
       <div className="absolute inset-0 bg-radial-gradient pointer-events-none" />
 
       <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">

@@ -1,8 +1,11 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const compression = require('compression');
 const app = express();
 app.disable('x-powered-by');
+// Compress all API responses (gzip/deflate) — significant savings on JSON payloads
+app.use(compression({ threshold: 1024 }));
 const origins = new Set((process.env.CLIENT_URL || 'http://localhost:5173').split(',').map(s => s.trim().replace(/\/$/, '')));
 // Canonical Firebase site; retain configured origins during the domain migration.
 if (process.env.NODE_ENV === 'production') origins.add('https://arckiv.web.app');

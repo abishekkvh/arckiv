@@ -8,6 +8,7 @@ const AuditLog = require('../models/AuditLog');
 const { recordAuditLog } = require('./auditService');
 const app = require('../config/firebase');
 const { getAuth } = require('firebase-admin/auth');
+const { cacheInvalidate } = require('../middleware/auth');
 
 const fail = (message, status = 400) => {
   throw Object.assign(new Error(message), { status });
@@ -360,6 +361,9 @@ async function updateUserStatus(userId, { status, reason = '' }, adminEmail, ipA
   user.disabledAt = status === 'disabled' ? new Date() : null;
 
   await user.save();
+
+  // Invalidate the in-process user cache so status change is immediately enforced
+  if (user.firebaseUid) cacheInvalidate(user.firebaseUid);
 
   // Best-effort Firebase Admin synchronization if available
   try {
