@@ -246,7 +246,7 @@ export default function Admin() {
         }`}
       >
         {/* Top Header Workspace Bar */}
-        <header className="sticky top-0 z-30 h-16 bg-white border-b border-slate-200 px-6 sm:px-8 flex items-center justify-between gap-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+        <header className="sticky top-0 z-30 h-16 bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
           <div className="flex items-center gap-3 min-w-0">
             {/* Mobile menu button */}
             <button
@@ -260,10 +260,10 @@ export default function Admin() {
             {/* Breadcrumb & Title */}
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium truncate">
-                <span>Arckiv</span>
-                <CaretRight size={10} className="text-slate-400" />
-                <span className="text-slate-600">Command Center</span>
-                <CaretRight size={10} className="text-slate-400" />
+                <span className="hidden sm:inline">Arckiv</span>
+                <CaretRight size={10} className="text-slate-400 hidden sm:inline" />
+                <span className="text-slate-600 hidden sm:inline">Command Center</span>
+                <CaretRight size={10} className="text-slate-400 hidden sm:inline" />
                 <span className="text-blue-600 font-semibold">{activeTabInfo.label}</span>
               </div>
               <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 truncate">
@@ -301,7 +301,7 @@ export default function Admin() {
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 p-6 sm:p-8 max-w-[1600px] w-full mx-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={tab}

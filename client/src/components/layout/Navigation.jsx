@@ -298,6 +298,24 @@ export default function Navigation() {
               exit={{ opacity: 0, y: -10, scale: 0.98 }}
               className="md:hidden absolute top-20 left-4 right-4 bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-gray-200 overflow-hidden pointer-events-auto p-4 space-y-2"
             >
+              {/* Mobile Semantic Search Bar */}
+              <form 
+                onSubmit={(e) => {
+                  handleSearch(e);
+                  setMobileMenuOpen(false);
+                }} 
+                className="relative flex items-center mb-3"
+              >
+                <MagnifyingGlass className="absolute left-3 text-gray-400" size={16} weight="bold" />
+                <input
+                  type="text"
+                  placeholder="Semantic search (e.g. 'invoices')..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-gray-100 focus:bg-white text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-xl border border-transparent focus:border-blue-200 transition-all"
+                />
+              </form>
+
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.path;
                 return (

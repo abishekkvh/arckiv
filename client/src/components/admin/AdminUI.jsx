@@ -208,15 +208,15 @@ export function AdminDrawer({ isOpen, onClose, title, subtitle, icon: Icon, chil
             className={`relative z-10 w-full ${maxWidth} bg-white border-l border-slate-200 shadow-2xl flex flex-col h-full`}
           >
             {/* Header */}
-            <div className="p-6 border-b border-slate-200 flex items-center justify-between shrink-0 bg-slate-50/70">
+            <div className="p-4 sm:p-6 border-b border-slate-200 flex items-center justify-between shrink-0 bg-slate-50/70">
               <div className="flex items-center gap-3.5 min-w-0">
                 {Icon && (
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0 shadow-xs">
                     <Icon size={20} weight="duotone" />
                   </div>
                 )}
                 <div className="min-w-0">
-                  <h3 className="text-base font-bold text-slate-900 truncate tracking-tight">{title}</h3>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate tracking-tight">{title}</h3>
                   {subtitle && <p className="text-xs text-slate-500 truncate mt-0.5">{subtitle}</p>}
                 </div>
               </div>
@@ -231,7 +231,7 @@ export function AdminDrawer({ isOpen, onClose, title, subtitle, icon: Icon, chil
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
               {children}
             </div>
           </motion.div>

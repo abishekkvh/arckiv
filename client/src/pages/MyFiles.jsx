@@ -350,38 +350,38 @@ export default function MyFiles() {
                   {(doc.size / 1024 / 1024).toFixed(2)} MB
                 </div>
 
-                <div className="col-span-4 sm:col-span-3 flex items-center justify-end gap-1.5">
+                <div className="col-span-4 sm:col-span-3 flex items-center justify-end gap-1">
                   <button 
                     onClick={() => handleViewDocument(doc)}
-                    className="p-2 hover:bg-white text-gray-700 hover:text-blue-600 rounded-xl transition-colors"
+                    className="p-1.5 sm:p-2 hover:bg-white text-gray-700 hover:text-blue-600 rounded-xl transition-colors"
                     title="View Document"
                   >
                     <Eye size={16} weight="bold" />
                   </button>
                   <button 
                     onClick={() => { setSelectedShareDoc(doc); setIsShareOpen(true); }}
-                    className="p-2 hover:bg-white text-gray-700 hover:text-emerald-600 rounded-xl transition-colors"
+                    className="p-1.5 sm:p-2 hover:bg-white text-gray-700 hover:text-emerald-600 rounded-xl transition-colors"
                     title="Share"
                   >
                     <ShareNetwork size={16} weight="bold" />
                   </button>
                   <button 
                     onClick={() => { setSelectedEditDoc(doc); setIsEditOpen(true); }}
-                    className="p-2 hover:bg-white text-gray-700 hover:text-indigo-600 rounded-xl transition-colors"
+                    className="hidden sm:inline-flex p-2 hover:bg-white text-gray-700 hover:text-indigo-600 rounded-xl transition-colors"
                     title="Edit Metadata"
                   >
                     <PencilSimple size={16} weight="bold" />
                   </button>
                   <button 
                     onClick={() => { setSelectedHistoryDoc(doc); setIsHistoryOpen(true); }}
-                    className="p-2 hover:bg-white text-gray-700 hover:text-purple-600 rounded-xl transition-colors"
+                    className="hidden sm:inline-flex p-2 hover:bg-white text-gray-700 hover:text-purple-600 rounded-xl transition-colors"
                     title="History Timeline"
                   >
                     <ClockCounterClockwise size={16} weight="bold" />
                   </button>
                   <button 
                     onClick={() => { if (window.confirm(`Delete "${doc.name}"?`)) handleDeleteDocument(doc); }}
-                    className="p-2 hover:bg-white text-gray-700 hover:text-red-600 rounded-xl transition-colors"
+                    className="p-1.5 sm:p-2 hover:bg-white text-gray-700 hover:text-red-600 rounded-xl transition-colors"
                     title="Delete"
                   >
                     <Trash size={16} weight="bold" />

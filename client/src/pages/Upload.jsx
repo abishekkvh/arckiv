@@ -153,7 +153,7 @@ export default function Upload() {
                 onDragLeave={(e) => { e.currentTarget.classList.remove('border-[var(--color-primary)]', 'bg-blue-50/50'); }}
                 onDrop={(e) => { e.currentTarget.classList.remove('border-[var(--color-primary)]', 'bg-blue-50/50'); handleDrop(e); }}
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-300 hover:border-[var(--color-primary)]/50 rounded-2xl p-10 flex flex-col items-center justify-center text-center cursor-pointer transition-all group bg-[var(--surface-hover)]/50"
+                className="border-2 border-dashed border-gray-300 hover:border-[var(--color-primary)]/50 rounded-2xl p-6 sm:p-10 flex flex-col items-center justify-center text-center cursor-pointer transition-all group bg-[var(--surface-hover)]/50"
               >
                 <input 
                   type="file" 
